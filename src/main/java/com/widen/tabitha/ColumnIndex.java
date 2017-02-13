@@ -63,7 +63,7 @@ public class ColumnIndex implements Iterable<String>
             columnMap = new HashMap<>();
         }
 
-        public void addColumn(String name)
+        public Builder addColumn(String name)
         {
             int hashCode = name.hashCode();
 
@@ -74,6 +74,8 @@ public class ColumnIndex implements Iterable<String>
 
             columnMap.put(hashCode, columnNames.size());
             columnNames.add(name);
+
+            return this;
         }
 
         public ColumnIndex build()
