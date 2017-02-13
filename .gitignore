@@ -1,0 +1,15 @@
+/.gradle
+/.idea/artifacts
+/.idea/deployment.xml
+/.idea/gradle.xml
+/.idea/modules.xml
+/.idea/tasks.xml
+/.idea/workspace.xml
+/.idea/libraries
+/.idea/shelf
+/build
+*.class
+.DS_Store
+*.jar
+*.war
+*.ear
