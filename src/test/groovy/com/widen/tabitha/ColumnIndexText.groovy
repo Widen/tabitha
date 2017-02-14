@@ -1,6 +1,8 @@
 package com.widen.tabitha
 
-class ColumnIndexText {
+import spock.lang.*
+
+class ColumnIndexText extends Specification {
     def "duplicate column names"() {
         given:
         def builder = new ColumnIndex.Builder()
