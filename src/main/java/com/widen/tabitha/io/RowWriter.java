@@ -7,14 +7,14 @@ import java.io.IOException;
 /**
  * Writes data rows to an output.
  */
-public interface Writer<T>
+public interface RowWriter
 {
     /**
      * Writes a row to the output.
      *
      * @param row
      */
-    void write(Row<T> row) throws IOException;
+    void write(Row row) throws IOException;
 
     /**
      * Writes multiple rows to the output.
@@ -22,9 +22,9 @@ public interface Writer<T>
      * @param rows
      * @throws IOException
      */
-    default void writeAll(Row<T>... rows) throws IOException
+    default void writeAll(Row... rows) throws IOException
     {
-        for (Row<T> row : rows)
+        for (Row row : rows)
         {
             write(row);
         }

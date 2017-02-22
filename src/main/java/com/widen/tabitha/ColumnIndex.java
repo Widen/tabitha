@@ -2,6 +2,9 @@ package com.widen.tabitha;
 
 import java.util.*;
 
+/**
+ * Stores column names in order, with O(1) lookup times by index or by name.
+ */
 public class ColumnIndex implements Iterable<String>
 {
     // Ordered list of column names.
@@ -10,6 +13,9 @@ public class ColumnIndex implements Iterable<String>
     // Maps the hashcode of a column name to the column index. Used for fast lookup of column index by name.
     private Map<Integer, Integer> columnMap;
 
+    /**
+     * Get the number of columns.
+     */
     public int size()
     {
         return columnNames.size();

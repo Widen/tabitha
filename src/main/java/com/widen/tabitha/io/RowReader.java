@@ -6,20 +6,20 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.Optional;
 
-public interface Reader<T> extends Iterable<Row<T>>
+public interface RowReader extends Iterable<Row>
 {
     /**
      * Attempt to read the next row.
      */
-    Optional<Row<T>> read() throws IOException;
+    Optional<Row> read() throws IOException;
 
     /**
      * Get an iterator over all rows produced by the reader.
      */
-    default Iterator<Row<T>> iterator()
+    default Iterator<Row> iterator()
     {
-        return new Iterator<Row<T>>() {
-            private Row<T> nextRow;
+        return new Iterator<Row>() {
+            private Row nextRow;
 
             public boolean hasNext()
             {
@@ -38,7 +38,7 @@ public interface Reader<T> extends Iterable<Row<T>>
                 return nextRow != null;
             }
 
-            public Row<T> next()
+            public Row next()
             {
                 if (nextRow == null)
                 {
@@ -52,7 +52,7 @@ public interface Reader<T> extends Iterable<Row<T>>
                     }
                 }
 
-                Row<T> row = nextRow;
+                Row row = nextRow;
                 nextRow = null;
                 return row;
             }
@@ -62,11 +62,11 @@ public interface Reader<T> extends Iterable<Row<T>>
     /**
       * Pipe all remaining rows into a writer.
       */
-    default void pipe(Writer<T> writer) throws IOException
+    default void pipe(RowWriter rowWriter) throws IOException
     {
-        for (Row<T> row : this)
+        for (Row row : this)
         {
-            writer.write(row);
+            rowWriter.write(row);
         }
     }
 }

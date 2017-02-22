@@ -1,25 +1,34 @@
 package com.widen.tabitha;
 
+import org.apache.commons.collections4.iterators.ObjectArrayIterator;
+
+import java.util.Iterator;
 import java.util.Optional;
 
 /**
- * Stores a single row of data of some type, indexed by column.
+ * Stores a single row of data values, indexed by column.
  */
-public class Row<T>
+public class Row implements Iterable<Value>
 {
     private final ColumnIndex columnIndex;
-    private final T[] data;
+    private final Value[] values;
 
-    public Row(ColumnIndex columnIndex, T... data)
+    public Row(ColumnIndex columnIndex, Value... values)
     {
         this.columnIndex = columnIndex;
-        this.data = data;
+        this.values = values;
+    }
+
+    /**
+     * Get the number of values in the row.
+     */
+    public int size()
+    {
+        return values.length;
     }
 
     /**
      * Get the column index.
-     *
-     * @return
      */
     public ColumnIndex columns()
     {
@@ -29,22 +38,30 @@ public class Row<T>
     /**
      * Get the value of a cell by column name.
      */
-    public Optional<T> get(String name)
+    public Optional<Value> get(String name)
     {
-        return columnIndex.columnIndex(name).flatMap(this::atIndex);
+        return columnIndex.columnIndex(name).flatMap(this::get);
     }
 
     /**
      * Get the value of a cell by index.
      */
-    public Optional<T> atIndex(int index)
+    public Optional<Value> get(int index)
     {
-        if (index >= data.length)
+        if (index >= values.length)
         {
             return Optional.empty();
         }
 
-        return Optional.ofNullable(data[index]);
+        return Optional.ofNullable(values[index]);
+    }
+
+    /**
+     * Get an iterator over the values in the row.
+     */
+    public Iterator<Value> iterator()
+    {
+        return new ObjectArrayIterator<>(values);
     }
 
     /**
@@ -52,8 +69,8 @@ public class Row<T>
      * <p>
      * Empty cell values are preserved as null entries in the array.
      */
-    public T[] toArray()
+    public Value[] toArray()
     {
-        return data.clone();
+        return values.clone();
     }
 }
