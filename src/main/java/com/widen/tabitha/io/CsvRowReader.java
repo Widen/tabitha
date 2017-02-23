@@ -1,10 +1,7 @@
 package com.widen.tabitha.io;
 
 import com.opencsv.CSVReader;
-import com.widen.tabitha.ColumnIndex;
-import com.widen.tabitha.Row;
-import com.widen.tabitha.StringValue;
-import com.widen.tabitha.Utils;
+import com.widen.tabitha.*;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -37,7 +34,7 @@ public class CsvRowReader implements RowReader
             return Optional.empty();
         }
 
-        StringValue[] values = Utils.mapArray(columns, StringValue::new);
+        Value[] values = Utils.mapArray(columns, Value.String::new);
 
         return Optional.of(new Row(columnIndex, values));
     }
