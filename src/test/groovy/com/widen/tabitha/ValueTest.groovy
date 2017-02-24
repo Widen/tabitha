@@ -18,6 +18,19 @@ class ValueTest extends Specification {
         new Value.Float(3.141)  | Optional.empty()   | Optional.empty()  | Optional.empty() | Optional.of(3.141)
     }
 
+    def "value equality is reflexive and works unboxed"() {
+        expect:
+        boxed == boxed
+        boxed == unboxed
+
+        where:
+        boxed                   | unboxed
+        new Value.String("foo") | "foo"
+        Value.Bool.True         | true
+        new Value.Int(42)       | 42
+        new Value.Float(3.141)  | 3.141
+    }
+
     def "asString correct depending on value type"() {
         expect:
         value.asString() == string

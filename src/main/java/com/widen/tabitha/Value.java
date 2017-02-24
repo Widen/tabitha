@@ -124,9 +124,14 @@ public interface Value
         @Override
         public boolean equals(Object other)
         {
-            if (Boolean.valueOf(value).equals(other))
+            if (other == this)
             {
                 return true;
+            }
+
+            if (other instanceof Boolean)
+            {
+                return value == (Boolean) other;
             }
 
             if (other instanceof Bool)
@@ -165,9 +170,14 @@ public interface Value
         @Override
         public boolean equals(Object other)
         {
-            if (Long.valueOf(value).equals(other))
+            if (other == this)
             {
                 return true;
+            }
+
+            if (other instanceof Number)
+            {
+                return value == ((Number) other).longValue();
             }
 
             if (other instanceof Int)
@@ -206,9 +216,14 @@ public interface Value
         @Override
         public boolean equals(Object other)
         {
-            if (Double.valueOf(value).equals(other))
+            if (other == this)
             {
                 return true;
+            }
+
+            if (other instanceof Number)
+            {
+                return value == ((Number) other).doubleValue();
             }
 
             if (other instanceof Float)
