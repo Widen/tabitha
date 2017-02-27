@@ -8,16 +8,23 @@ import java.io.Reader;
 import java.util.Optional;
 
 /**
- * Reads a CSV file into rows of strings.
+ * Reads a delimiter-separated text file into rows of values.
  */
-public class CsvRowReader implements RowReader
+public class DelimitedRowReader implements RowReader
 {
     private CSVReader reader;
     private ColumnIndex columnIndex;
 
-    public CsvRowReader(Reader reader)
+    public DelimitedRowReader(Reader reader, DelimitedTextFormat format)
     {
-        this.reader = new CSVReader(reader);
+        this.reader = new CSVReader(
+            reader,
+            format.getDelimiter(),
+            format.getQuoteCharacter(),
+            format.getEscapeCharacter(),
+            0,
+            format.isStrictQuotes()
+        );
     }
 
     @Override

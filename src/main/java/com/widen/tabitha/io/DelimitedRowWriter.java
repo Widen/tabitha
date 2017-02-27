@@ -9,16 +9,16 @@ import java.io.IOException;
 import java.io.Writer;
 
 /**
- * Writes rows of strings to a CSV file.
+ * Writes rows of values to a delimiter-separated text file.
  */
-public class CsvRowWriter implements RowWriter
+public class DelimitedRowWriter implements RowWriter
 {
     private CSVWriter writer;
     private boolean headersWritten = false;
 
-    public CsvRowWriter(Writer writer)
+    public DelimitedRowWriter(Writer writer, DelimitedTextFormat format)
     {
-        this.writer = new CSVWriter(writer);
+        this.writer = new CSVWriter(writer, format.getDelimiter(), format.getQuoteCharacter(), format.getEscapeCharacter());
     }
 
     @Override
