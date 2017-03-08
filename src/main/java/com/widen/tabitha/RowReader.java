@@ -1,11 +1,13 @@
-package com.widen.tabitha.io;
-
-import com.widen.tabitha.Row;
+package com.widen.tabitha;
 
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.Optional;
 
+/**
+ * Reads data rows from a data source.
+ */
+@FunctionalInterface
 public interface RowReader extends Iterable<Row>
 {
     /**

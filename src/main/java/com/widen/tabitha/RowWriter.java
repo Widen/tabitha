@@ -1,12 +1,11 @@
-package com.widen.tabitha.io;
-
-import com.widen.tabitha.Row;
+package com.widen.tabitha;
 
 import java.io.IOException;
 
 /**
  * Writes data rows to an output.
  */
+@FunctionalInterface
 public interface RowWriter
 {
     /**

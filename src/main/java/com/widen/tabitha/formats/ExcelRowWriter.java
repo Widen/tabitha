@@ -1,6 +1,7 @@
-package com.widen.tabitha.io;
+package com.widen.tabitha.formats;
 
 import com.widen.tabitha.Row;
+import com.widen.tabitha.RowWriter;
 import com.widen.tabitha.Value;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;

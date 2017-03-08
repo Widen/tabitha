@@ -1,4 +1,4 @@
-package com.widen.tabitha.io;
+package com.widen.tabitha.formats;
 
 /**
  * Format options for a delimiter-separated text file.

@@ -1,7 +1,8 @@
-package com.widen.tabitha.io;
+package com.widen.tabitha.formats;
 
 import com.widen.tabitha.ColumnIndex;
 import com.widen.tabitha.Row;
+import com.widen.tabitha.RowReader;
 import com.widen.tabitha.Value;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.*;

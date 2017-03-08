@@ -1,10 +1,13 @@
-package com.widen.tabitha.io;
+package com.widen.tabitha.formats;
 
 import com.opencsv.CSVReader;
 import com.widen.tabitha.*;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
 /**
@@ -14,6 +17,11 @@ public class DelimitedRowReader implements RowReader
 {
     private CSVReader reader;
     private ColumnIndex columnIndex;
+
+    public DelimitedRowReader(InputStream inputStream, DelimitedTextFormat format)
+    {
+        this(new InputStreamReader(inputStream, StandardCharsets.UTF_8), format);
+    }
 
     public DelimitedRowReader(Reader reader, DelimitedTextFormat format)
     {
