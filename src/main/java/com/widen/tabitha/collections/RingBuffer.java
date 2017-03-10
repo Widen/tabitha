@@ -136,6 +136,8 @@ public class RingBuffer<E> extends AbstractCollection<E> implements Collection<E
      */
     public void pushFront(E element)
     {
+        Objects.requireNonNull(element);
+
         if (size == buffer.length)
         {
             resize(buffer.length * 2);
@@ -151,6 +153,8 @@ public class RingBuffer<E> extends AbstractCollection<E> implements Collection<E
      */
     public void pushBack(E element)
     {
+        Objects.requireNonNull(element);
+
         if (size == buffer.length)
         {
             resize(buffer.length * 2);
