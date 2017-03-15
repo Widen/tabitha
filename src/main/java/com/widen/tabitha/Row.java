@@ -21,6 +21,8 @@ public class Row implements Iterable<Value>
 
     /**
      * Get the number of values in the row.
+     *
+     * @return The number of values in the row.
      */
     public int size()
     {
@@ -29,6 +31,8 @@ public class Row implements Iterable<Value>
 
     /**
      * Get the column index.
+     *
+     * @return The column index.
      */
     public ColumnIndex columns()
     {
@@ -37,6 +41,9 @@ public class Row implements Iterable<Value>
 
     /**
      * Get the value of a cell by column name.
+     *
+     * @param name The name of the column.
+     * @return The value for the given column, if present.
      */
     public Optional<Value> get(String name)
     {
@@ -45,6 +52,9 @@ public class Row implements Iterable<Value>
 
     /**
      * Get the value of a cell by index.
+     *
+     * @param index The index of the column.
+     * @return The value for the given column, if present.
      */
     public Optional<Value> get(int index)
     {
@@ -58,6 +68,8 @@ public class Row implements Iterable<Value>
 
     /**
      * Get an iterator over the values in the row.
+     *
+     * @return Iterator over the values in the row.
      */
     public Iterator<Value> iterator()
     {
@@ -66,8 +78,10 @@ public class Row implements Iterable<Value>
 
     /**
      * Returns an array containing the values in the row in order.
-     * <p>
+     *
      * Empty cell values are preserved as null entries in the array.
+     *
+     * @return Array of values.
      */
     public Value[] toArray()
     {

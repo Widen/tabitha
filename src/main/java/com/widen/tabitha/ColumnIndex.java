@@ -15,6 +15,8 @@ public class ColumnIndex implements Iterable<String>
 
     /**
      * Get the number of columns.
+     *
+     * @return The number of columns.
      */
     public int size()
     {
@@ -23,6 +25,9 @@ public class ColumnIndex implements Iterable<String>
 
     /**
      * Get the name of a column by index.
+     *
+     * @param index The column index.
+     * @return The name of the column if the index is valid.
      */
     public Optional<String> columnName(int index)
     {
@@ -36,6 +41,9 @@ public class ColumnIndex implements Iterable<String>
 
     /**
      * Get the index of a column by name.
+     *
+     * @param name The column name.
+     * @return The index of the column if the name exists.
      */
     public Optional<Integer> columnIndex(String name)
     {
@@ -44,6 +52,8 @@ public class ColumnIndex implements Iterable<String>
 
     /**
      * Get an iterator over all column names in order.
+     *
+     * @return Iterator over column names.
      */
     public Iterator<String> iterator()
     {
@@ -52,12 +62,17 @@ public class ColumnIndex implements Iterable<String>
 
     /**
      * Returns an array containing all of the column names in order.
+     *
+     * @return Array of column names.
      */
     public String[] toArray()
     {
         return (String[]) columnNames.toArray();
     }
 
+    /**
+     * Creates column indexes.
+     */
     public static class Builder
     {
         private List<String> columnNames;
