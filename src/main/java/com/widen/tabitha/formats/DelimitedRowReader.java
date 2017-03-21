@@ -2,6 +2,7 @@ package com.widen.tabitha.formats;
 
 import com.opencsv.CSVReader;
 import com.widen.tabitha.*;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -49,7 +50,7 @@ public class DelimitedRowReader implements RowReader
             return Optional.empty();
         }
 
-        Value[] values = Utils.mapArray(columns, Value.String::new);
+        Value[] values = Utils.mapArray(columns, this::asValue);
 
         return Optional.of(new Row(columnIndex, values));
     }
@@ -65,5 +66,15 @@ public class DelimitedRowReader implements RowReader
         }
 
         columnIndex = builder.build();
+    }
+
+    private Value asValue(String value)
+    {
+        if (StringUtils.isNotBlank(value))
+        {
+            return new Value.String(value);
+        }
+
+        return Value.EMPTY;
     }
 }

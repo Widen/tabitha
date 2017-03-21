@@ -3,12 +3,22 @@ package com.widen.tabitha;
 import java.util.Optional;
 
 /**
- * An algebraic boxed type for a typed primitive value.
+ * A boxed type for a typed primitive value.
  *
- * By default a value can either be a {@link String}, a {@link Bool}, an {@link Int}, or a {@link Float}.
+ * By default a value can either be a {@link String}, a {@link Bool}, an {@link Int}, a {@link Float}, or {@link #EMPTY}.
  */
 public interface Value
 {
+    /**
+     * Check if the value is empty.
+     *
+     * @return True if the value is equal to {@link #EMPTY}, otherwise false.
+     */
+    default boolean isEmpty()
+    {
+        return false;
+    }
+
     /**
      * Get the string value if the value is a string type.
      */
@@ -45,6 +55,23 @@ public interface Value
      * Get the value as a string. Non-string values will be converted to a string.
      */
     java.lang.String asString();
+
+    /**
+     * Represents an empty value.
+     */
+    Value EMPTY = new Value() {
+        @Override
+        public boolean isEmpty()
+        {
+            return true;
+        }
+
+        @Override
+        public java.lang.String asString()
+        {
+            return "";
+        }
+    };
 
     /**
      * A string value.
@@ -93,18 +120,32 @@ public interface Value
     class Bool implements Value
     {
         /**
-         * Boxed false boolean.
+         * The boxed value of {@code true}.
          */
-        public final static Bool True = new Bool(true);
+        public static final Bool TRUE = new Bool(true);
 
         /**
-         * Boxed false boolean.
+         * The boxed value of {@code false}.
          */
-        public final static Bool False = new Bool(false);
+        public static final Bool FALSE = new Bool(false);
 
+        // The value of the boolean.
         private boolean value;
 
-        public Bool(boolean value)
+        /**
+         * Get a {@link Bool} instance representing the given boolean value.
+         *
+         * @param value The boolean value.
+         * @return The equivalent value instance.
+         */
+        public static Bool valueOf(boolean value)
+        {
+            // Use static objects already initialized to save memory.
+            return value ? TRUE : FALSE;
+        }
+
+        // Private to prevent more than two instances from existing.
+        private Bool(boolean value)
         {
             this.value = value;
         }

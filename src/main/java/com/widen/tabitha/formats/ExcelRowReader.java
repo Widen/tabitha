@@ -4,6 +4,7 @@ import com.widen.tabitha.ColumnIndex;
 import com.widen.tabitha.Row;
 import com.widen.tabitha.RowReader;
 import com.widen.tabitha.Value;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.*;
 
@@ -98,13 +99,18 @@ public class ExcelRowReader implements RowReader
     {
         if (cell == null)
         {
-            return null;
+            return Value.EMPTY;
         }
 
         switch (cell.getCellTypeEnum())
         {
             case STRING:
-                return new Value.String(cell.getRichStringCellValue().getString());
+                String string = cell.getRichStringCellValue().getString();
+                if (StringUtils.isNotBlank(string))
+                {
+                    return new Value.String(string);
+                }
+                return Value.EMPTY;
 
             case NUMERIC:
                 if (DateUtil.isCellDateFormatted(cell))
