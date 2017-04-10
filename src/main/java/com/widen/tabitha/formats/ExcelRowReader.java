@@ -1,8 +1,8 @@
 package com.widen.tabitha.formats;
 
-import com.widen.tabitha.ColumnIndex;
 import com.widen.tabitha.Row;
 import com.widen.tabitha.RowReader;
+import com.widen.tabitha.Schema;
 import com.widen.tabitha.Value;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
@@ -21,7 +21,7 @@ import java.util.Optional;
 public class ExcelRowReader implements RowReader
 {
     private Workbook workbook;
-    private ColumnIndex columnIndex;
+    private Schema schema;
     private int rowIndex = 0;
 
     public ExcelRowReader(File file) throws InvalidFormatException, IOException
@@ -42,7 +42,7 @@ public class ExcelRowReader implements RowReader
     @Override
     public Optional<Row> read() throws IOException
     {
-        if (columnIndex == null)
+        if (schema == null)
         {
             readHeader();
         }
@@ -57,7 +57,7 @@ public class ExcelRowReader implements RowReader
                 values[i] = getCellValue(row.getCell(i));
             }
 
-            return Optional.of(new Row(columnIndex, values));
+            return Optional.of(schema.createRow(values));
         }
 
         return Optional.empty();
@@ -69,14 +69,14 @@ public class ExcelRowReader implements RowReader
 
         if (row != null)
         {
-            ColumnIndex.Builder builder = new ColumnIndex.Builder();
+            Schema.Builder builder = new Schema.Builder();
 
             for (int i = 0; i < row.getLastCellNum(); ++i)
             {
-                builder.addColumn(getCellValue(row.getCell(i)).asString());
+                builder.add(getCellValue(row.getCell(i)).asString());
             }
 
-            columnIndex = builder.build();
+            schema = builder.build();
         }
     }
 
@@ -99,7 +99,7 @@ public class ExcelRowReader implements RowReader
     {
         if (cell == null)
         {
-            return Value.EMPTY;
+            return Value.NONE;
         }
 
         switch (cell.getCellTypeEnum())
@@ -110,7 +110,7 @@ public class ExcelRowReader implements RowReader
                 {
                     return new Value.String(string);
                 }
-                return Value.EMPTY;
+                return Value.NONE;
 
             case NUMERIC:
                 if (DateUtil.isCellDateFormatted(cell))

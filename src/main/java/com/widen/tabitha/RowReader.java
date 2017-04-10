@@ -2,11 +2,11 @@ package com.widen.tabitha;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.*;
+import java.util.Iterator;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 /**
  * Reads data rows from a data source.
@@ -14,6 +14,16 @@ import java.util.stream.StreamSupport;
 @FunctionalInterface
 public interface RowReader extends Iterable<Row>, Closeable
 {
+    /**
+     * Create a row reader with no rows.
+     *
+     * @return An empty row reader.
+     */
+    static RowReader empty()
+    {
+        return Optional::empty;
+    }
+
     /**
      * Create a row reader from an iterator.
      *
@@ -59,6 +69,100 @@ public interface RowReader extends Iterable<Row>, Closeable
     }
 
     /**
+     * Create a new reader that produces rows from the given readers in sequence.
+     *
+     * @param rowReaders The row readers to chain.
+     * @return The chained reader.
+     */
+    static RowReader chain(RowReader... rowReaders)
+    {
+        return new RowReader()
+        {
+            private int index = 0;
+
+            @Override
+            public Optional<Row> read() throws IOException
+            {
+                while (index < rowReaders.length)
+                {
+                    Optional<Row> row = rowReaders[index].read();
+
+                    if (row.isPresent())
+                    {
+                        return row;
+                    }
+
+                    ++index;
+                }
+
+                return Optional.empty();
+            }
+
+            @Override
+            public void close() throws IOException
+            {
+                for (RowReader rowReader : rowReaders)
+                {
+                    rowReader.close();
+                }
+            }
+        };
+    }
+
+    /**
+     * Create a new reader that joins columns from this reader with columns from another reader.
+     *
+     * @param rowReaders Another row reader to join with.
+     * @return The joined row reader.
+     */
+    static RowReader zip(RowReader... rowReaders)
+    {
+        return new RowReader()
+        {
+            private final Row[] rows = new Row[rowReaders.length];
+            private boolean stillMore = true;
+
+            @Override
+            public Optional<Row> read() throws IOException
+            {
+                if (!stillMore)
+                {
+                    return Optional.empty();
+                }
+
+                // Read one row from all readers.
+                stillMore = false;
+                for (int i = 0; i < rows.length; ++i)
+                {
+                    rows[i] = rowReaders[i].read().orElse(null);
+                    if (rows[i] != null)
+                    {
+                        stillMore = true;
+                    }
+                }
+
+                if (stillMore)
+                {
+                    return Optional.of(Row.merge(rows));
+                }
+                else
+                {
+                    return Optional.empty();
+                }
+            }
+
+            @Override
+            public void close() throws IOException
+            {
+                for (RowReader rowReader : rowReaders)
+                {
+                    rowReader.close();
+                }
+            }
+        };
+    }
+
+    /**
      * Attempt to read the next row.
      *
      * @throws IOException Thrown if an I/O error occurs.
@@ -74,18 +178,42 @@ public interface RowReader extends Iterable<Row>, Closeable
      */
     default RowReader filter(Predicate<Row> predicate)
     {
-        return () ->
+        return new RowReader()
         {
-            for (Row row : this)
+            @Override
+            public Optional<Row> read() throws IOException
             {
-                if (predicate.test(row))
+                for (Row row : RowReader.this)
                 {
-                    return Optional.of(row);
+                    if (predicate.test(row))
+                    {
+                        return Optional.of(row);
+                    }
                 }
+
+                return Optional.empty();
             }
 
-            return Optional.empty();
+            @Override
+            public void close() throws IOException
+            {
+                RowReader.this.close();
+            }
         };
+    }
+
+    /**
+     * Filter rows returned based on the value of a given column. If the given column is not set for a row, that row is
+     * filtered out.
+     *
+     * @param predicate A predicate to apply to each value in the column to determine if the row should be included.
+     * @return A filtered row reader.
+     */
+    default RowReader filterBy(String column, Predicate<Value> predicate)
+    {
+        return filter(row -> row.get(column)
+            .map(predicate::test)
+            .orElse(false));
     }
 
     /**
@@ -96,7 +224,20 @@ public interface RowReader extends Iterable<Row>, Closeable
      */
     default RowReader map(Function<Row, Row> mapper)
     {
-        return () -> read().map(mapper);
+        return new RowReader()
+        {
+            @Override
+            public Optional<Row> read() throws IOException
+            {
+                return RowReader.this.read().map(mapper);
+            }
+
+            @Override
+            public void close() throws IOException
+            {
+                RowReader.this.close();
+            }
+        };
     }
 
     /**
@@ -105,81 +246,9 @@ public interface RowReader extends Iterable<Row>, Closeable
      * @param columns The names of columns to keep.
      * @return The new row reader.
      */
-    default RowReader columns(String... columns)
+    default RowReader select(String... columns)
     {
-        return map(row ->
-        {
-            // TODO: This is pretty ugly. Improve the Row/ColumnIndex API.
-            Set<String> columnsToKeep = new HashSet<>(Arrays.asList(columns));
-            ColumnIndex.Builder builder = new ColumnIndex.Builder();
-            ArrayList<Value> values = new ArrayList<>();
-
-            for (String column : row.columns())
-            {
-                if (columnsToKeep.contains(column))
-                {
-                    builder.addColumn(column);
-                    values.add(row.get(column).get());
-                }
-            }
-
-            return new Row(builder.build(), values.toArray(new Value[values.size()]));
-        });
-    }
-
-    /**
-     * Filter rows returned based on the value of a given column. If the given column is not set for a row, that row is
-     * filtered out.
-     *
-     * @param predicate A predicate to apply to each value in the column to determine if the row should be included.
-     * @return A filtered row reader.
-     */
-    default RowReader filterColumn(String column, Predicate<Value> predicate)
-    {
-        return filter(row -> row.get(column)
-            .map(predicate::test)
-            .orElse(false));
-    }
-
-    /**
-     * Create a new reader that joins columns from this reader with columns from another reader.
-     *
-     * @param rowReader Another row reader to join with.
-     * @return The joined row reader.
-     */
-    default RowReader zip(RowReader rowReader)
-    {
-        return () ->
-        {
-            Optional<Row> left = read();
-            Optional<Row> right = rowReader.read();
-
-            if (!left.isPresent() && !right.isPresent())
-            {
-                // TODO: We need to close both readers in the close() method.
-                return Optional.empty();
-            }
-
-            ColumnIndex.Builder builder = new ColumnIndex.Builder();
-            ArrayList<Value> values = new ArrayList<>();
-
-            left.ifPresent(row ->
-            {
-                row.columns().forEach(builder::addColumn);
-                row.forEach(values::add);
-            });
-
-            right.ifPresent(row ->
-            {
-                row.columns().forEach(builder::addColumn);
-                row.forEach(values::add);
-            });
-
-            return Optional.of(new Row(
-                builder.build(),
-                values.toArray(new Value[values.size()])
-            ));
-        };
+        return map(row -> row.select(columns));
     }
 
     /**

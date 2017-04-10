@@ -17,7 +17,7 @@ import java.util.Optional;
 public class DelimitedRowReader implements RowReader
 {
     private CSVReader reader;
-    private ColumnIndex columnIndex;
+    private Schema schema;
 
     public DelimitedRowReader(InputStream inputStream, DelimitedTextFormat format)
     {
@@ -39,7 +39,7 @@ public class DelimitedRowReader implements RowReader
     @Override
     public Optional<Row> read() throws IOException
     {
-        if (columnIndex == null)
+        if (schema == null)
         {
             readHeaders();
         }
@@ -52,20 +52,20 @@ public class DelimitedRowReader implements RowReader
 
         Value[] values = Utils.mapArray(columns, this::asValue);
 
-        return Optional.of(new Row(columnIndex, values));
+        return Optional.of(schema.createRow(values));
     }
 
     private void readHeaders() throws IOException
     {
         String[] columns = reader.readNext();
-        ColumnIndex.Builder builder = new ColumnIndex.Builder();
+        Schema.Builder builder = new Schema.Builder();
 
         for (String column : columns)
         {
-            builder.addColumn(column);
+            builder.add(column);
         }
 
-        columnIndex = builder.build();
+        schema = builder.build();
     }
 
     private Value asValue(String value)
@@ -75,6 +75,6 @@ public class DelimitedRowReader implements RowReader
             return new Value.String(value);
         }
 
-        return Value.EMPTY;
+        return Value.NONE;
     }
 }

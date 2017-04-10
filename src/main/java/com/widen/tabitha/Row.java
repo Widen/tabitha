@@ -1,22 +1,40 @@
 package com.widen.tabitha;
 
-import org.apache.commons.collections4.iterators.ObjectArrayIterator;
-
-import java.util.Iterator;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * Stores a single row of data values, indexed by column.
  */
-public class Row implements Iterable<Value>
+public class Row implements Iterable<Row.Cell>
 {
-    private final ColumnIndex columnIndex;
-    private final Value[] values;
+    private final Row.Cell[] cells;
 
-    public Row(ColumnIndex columnIndex, Value... values)
+    /**
+     * Create a new row that merges the columns and values of all the given rows.
+     *
+     * @param rows The rows to merge.
+     * @return The merged row.
+     */
+    public static Row merge(Row... rows)
     {
-        this.columnIndex = columnIndex;
-        this.values = values;
+        List<Cell> cells = new ArrayList<>();
+
+        for (int i = 0; i < rows.length; ++i)
+        {
+            cells.addAll(Arrays.asList(rows[i].cells));
+        }
+
+        return new Row((Cell[]) cells.toArray());
+    }
+
+    /**
+     * Create a row containing the given cells.
+     *
+     * @param cells The cells to contain.
+     */
+    Row(Cell... cells)
+    {
+        this.cells = cells;
     }
 
     /**
@@ -26,17 +44,7 @@ public class Row implements Iterable<Value>
      */
     public int size()
     {
-        return values.length;
-    }
-
-    /**
-     * Get the column index.
-     *
-     * @return The column index.
-     */
-    public ColumnIndex columns()
-    {
-        return columnIndex;
+        return cells.length;
     }
 
     /**
@@ -47,7 +55,15 @@ public class Row implements Iterable<Value>
      */
     public Optional<Value> get(String name)
     {
-        return columnIndex.columnIndex(name).flatMap(this::get);
+        for (Cell cell : cells)
+        {
+            if (cell.column.name.equals(name))
+            {
+                return Optional.of(cell.value);
+            }
+        }
+
+        return Optional.empty();
     }
 
     /**
@@ -58,33 +74,107 @@ public class Row implements Iterable<Value>
      */
     public Optional<Value> get(int index)
     {
-        if (index >= values.length)
+        if (index >= cells.length)
         {
             return Optional.empty();
         }
 
-        return Optional.ofNullable(values[index]);
+        return Optional.ofNullable(cells[index].value);
     }
 
     /**
-     * Get an iterator over the values in the row.
+     * Returns an array containing the cell columns used in the row.
      *
-     * @return Iterator over the values in the row.
+     * @return Array of columns.
      */
-    public Iterator<Value> iterator()
+    public Column[] columns()
     {
-        return new ObjectArrayIterator<>(values);
+        return Utils.mapArray(cells, cell -> cell.column);
     }
 
     /**
-     * Returns an array containing the values in the row in order.
-     *
-     * Empty cell values are preserved as null entries in the array.
+     * Returns an array containing the cell values.
      *
      * @return Array of values.
      */
-    public Value[] toArray()
+    public Value[] values()
     {
-        return values.clone();
+        return Utils.mapArray(cells, cell -> cell.value);
+    }
+
+    /**
+     * Get a new row that contains the values for only the given columns.
+     *
+     * @param columns The names of columns to keep.
+     * @return The new row.
+     */
+    public Row select(String... columns)
+    {
+        List<String> columnsToRetain = Arrays.asList(columns);
+        ArrayList<Cell> cells = new ArrayList<>();
+
+        for (Cell cell : this)
+        {
+            if (columnsToRetain.contains(cell.column.name))
+            {
+                cells.add(cell);
+            }
+        }
+
+        return new Row((Cell[]) cells.toArray());
+    }
+
+    @Override
+    public Iterator<Cell> iterator()
+    {
+        return new Iterator<Cell>()
+        {
+            private int index = 0;
+
+            @Override
+            public boolean hasNext()
+            {
+                return index < cells.length;
+            }
+
+            @Override
+            public Cell next()
+            {
+                return cells[index];
+            }
+        };
+    }
+
+    /**
+     * A single cell from a row containing a value.
+     */
+    public static final class Cell
+    {
+        /**
+         * The column the cell belongs to.
+         */
+        public final Column column;
+
+        /**
+         * The cell value.
+         */
+        public final Value value;
+
+        /**
+         * Create a new cell.
+         *
+         * @param column The cell column.
+         * @param value The cell value.
+         */
+        Cell(Column column, Value value)
+        {
+            if (column == null || value == null)
+            {
+                throw new NullPointerException();
+            }
+
+            this.column = column;
+            this.value = value;
+        }
     }
 }

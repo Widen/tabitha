@@ -35,16 +35,16 @@ public class DelimitedRowWriter implements RowWriter
     {
         if (!headersWritten)
         {
-            writer.writeNext(row.columns().toArray());
+            writer.writeNext(Utils.mapArray(row.columns(), column -> column.name));
             headersWritten = true;
         }
 
-        String[] cells = Utils.mapArray(row.toArray(), Value::asString);
+        String[] cells = Utils.mapArray(row.values(), Value::asString);
 
         int index = 0;
-        for (Value value : row)
+        for (Row.Cell cell : row)
         {
-            cells[index] = value.asString();
+            cells[index] = cell.value.asString();
             ++index;
         }
 

@@ -5,16 +5,16 @@ import java.util.Optional;
 /**
  * A boxed type for a typed primitive value.
  *
- * By default a value can either be a {@link String}, a {@link Bool}, an {@link Int}, a {@link Float}, or {@link #EMPTY}.
+ * By default a value can either be a {@link String}, a {@link Bool}, an {@link Int}, a {@link Float}, or {@link #NONE}.
  */
 public interface Value
 {
     /**
      * Check if the value is empty.
      *
-     * @return True if the value is equal to {@link #EMPTY}, otherwise false.
+     * @return True if the value is equal to {@link #NONE}, otherwise false.
      */
-    default boolean isEmpty()
+    default boolean isNone()
     {
         return false;
     }
@@ -59,9 +59,9 @@ public interface Value
     /**
      * Represents an empty value.
      */
-    Value EMPTY = new Value() {
+    Value NONE = new Value() {
         @Override
-        public boolean isEmpty()
+        public boolean isNone()
         {
             return true;
         }
