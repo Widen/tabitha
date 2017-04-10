@@ -24,7 +24,7 @@ public class Row implements Iterable<Row.Cell>
             cells.addAll(Arrays.asList(rows[i].cells));
         }
 
-        return new Row((Cell[]) cells.toArray());
+        return new Row(cells.toArray(new Cell[cells.size()]));
     }
 
     /**
@@ -121,7 +121,7 @@ public class Row implements Iterable<Row.Cell>
             }
         }
 
-        return new Row((Cell[]) cells.toArray());
+        return new Row(cells.toArray(new Cell[cells.size()]));
     }
 
     @Override

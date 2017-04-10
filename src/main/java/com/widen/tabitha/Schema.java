@@ -43,6 +43,16 @@ public class Schema implements Iterable<Column>
     }
 
     /**
+     * Create a new schema builder.
+     *
+     * @return A schema builder.
+     */
+    public static Builder builder()
+    {
+        return new Builder();
+    }
+
+    /**
      * Create a new column index with the given column names in order.
      *
      * @param columns The column names.
@@ -169,7 +179,7 @@ public class Schema implements Iterable<Column>
          */
         public Schema build()
         {
-            return new Schema((String[]) columns.toArray());
+            return new Schema(columns.toArray(new String[columns.size()]));
         }
     }
 
