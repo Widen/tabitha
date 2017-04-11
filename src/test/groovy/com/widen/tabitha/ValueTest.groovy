@@ -31,9 +31,9 @@ class ValueTest extends Specification {
         new Value.Float(3.141)  | 3.141
     }
 
-    def "asString correct depending on value type"() {
+    def "toString correct depending on value type"() {
         expect:
-        value.asString() == string
+        value.toString() == string
 
         where:
         value                   | string
