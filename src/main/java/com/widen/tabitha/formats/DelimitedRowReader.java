@@ -34,10 +34,6 @@ public class DelimitedRowReader implements RowReader
             0,
             format.isStrictQuotes()
         );
-        try
-        {
-            this.reader.readNext();
-        }catch (Exception e){}
     }
 
     @Override
