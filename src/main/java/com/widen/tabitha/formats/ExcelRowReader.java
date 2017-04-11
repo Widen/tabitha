@@ -73,7 +73,7 @@ public class ExcelRowReader implements RowReader
 
             for (int i = 0; i < row.getLastCellNum(); ++i)
             {
-                builder.add(getCellValue(row.getCell(i)).asString());
+                builder.add(getCellValue(row.getCell(i)).toString());
             }
 
             schema = builder.build();

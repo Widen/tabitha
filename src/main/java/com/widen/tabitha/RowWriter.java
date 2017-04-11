@@ -10,6 +10,13 @@ import java.io.IOException;
 public interface RowWriter extends Closeable
 {
     /**
+     * A row writer that discards all rows written to it.
+     *
+     * Closing has no effect on this row writer and is always re-usable.
+     */
+    RowWriter NULL = row -> {};
+
+    /**
      * Writes a row to the output.
      *
      * @param row A row to write.

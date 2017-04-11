@@ -5,10 +5,10 @@ import spock.lang.*
 class ValueTest extends Specification {
     def "values unbox to correct primitives"() {
         expect:
-        value.stringValue().orElse(null) == stringValue.orElse(null)
-        value.booleanValue().orElse(null) == booleanValue.orElse(null)
-        value.integerValue().orElse(null) == integerValue.orElse(null)
-        value.floatValue().orElse(null) == floatValue.orElse(null)
+        value.getString().orElse(null) == stringValue.orElse(null)
+        value.getBoolean().orElse(null) == booleanValue.orElse(null)
+        value.getInteger().orElse(null) == integerValue.orElse(null)
+        value.getFloat().orElse(null) == floatValue.orElse(null)
 
         where:
         value                   | stringValue        | booleanValue      | integerValue     | floatValue

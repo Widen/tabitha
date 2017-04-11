@@ -1,5 +1,7 @@
 package com.widen.tabitha;
 
+import org.apache.commons.collections4.iterators.ArrayIterator;
+
 import java.util.*;
 
 /**
@@ -89,7 +91,7 @@ public class Row implements Iterable<Row.Cell>
      */
     public Column[] columns()
     {
-        return Utils.mapArray(cells, cell -> cell.column);
+        return Utils.mapArray(cells, Column.class, cell -> cell.column);
     }
 
     /**
@@ -99,7 +101,7 @@ public class Row implements Iterable<Row.Cell>
      */
     public Value[] values()
     {
-        return Utils.mapArray(cells, cell -> cell.value);
+        return Utils.mapArray(cells, Value.class, cell -> cell.value);
     }
 
     /**
@@ -124,25 +126,27 @@ public class Row implements Iterable<Row.Cell>
         return new Row(cells.toArray(new Cell[cells.size()]));
     }
 
+    /**
+     * Get a new row that contains the values for only columns in the given range.
+     *
+     * @param start The start index, inclusive.
+     * @param end The ending index, exclusive.
+     * @return The new row.
+     */
+    public Row range(int start, int end)
+    {
+        if (start < 0 || end > cells.length)
+        {
+            throw new IndexOutOfBoundsException();
+        }
+
+        return new Row(Arrays.copyOfRange(cells, start, end));
+    }
+
     @Override
     public Iterator<Cell> iterator()
     {
-        return new Iterator<Cell>()
-        {
-            private int index = 0;
-
-            @Override
-            public boolean hasNext()
-            {
-                return index < cells.length;
-            }
-
-            @Override
-            public Cell next()
-            {
-                return cells[index];
-            }
-        };
+        return new ArrayIterator<>(cells);
     }
 
     /**

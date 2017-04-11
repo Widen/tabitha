@@ -15,13 +15,36 @@ import java.util.stream.Stream;
 public interface RowReader extends Iterable<Row>, Closeable
 {
     /**
-     * Create a row reader with no rows.
+     * A row reader that produces no rows.
      *
-     * @return An empty row reader.
+     * Closing has no effect on this row reader and is always re-usable.
      */
-    static RowReader empty()
+    RowReader EMPTY = Optional::empty;
+
+    /**
+     * Create a row reader from an array of rows.
+     *
+     * @param rows Rows to create from.
+     * @return The new reader.
+     */
+    static RowReader from(Row... rows)
     {
-        return Optional::empty;
+        return new RowReader()
+        {
+            private int index = 0;
+
+            @Override
+            public Optional<Row> read() throws IOException
+            {
+                if (index < rows.length)
+                {
+                    ++index;
+                    return Optional.of(rows[index]);
+                }
+
+                return Optional.empty();
+            }
+        };
     }
 
     /**
@@ -249,6 +272,49 @@ public interface RowReader extends Iterable<Row>, Closeable
     default RowReader select(String... columns)
     {
         return map(row -> row.select(columns));
+    }
+
+    /**
+     * Get a new row reader that returns the values for only columns in the given range.
+     *
+     * @param start The start index, inclusive.
+     * @param end The ending index, exclusive.
+     * @return The new row reader.
+     */
+    default RowReader range(int start, int end)
+    {
+        return map(row -> row.range(start, end));
+    }
+
+    /**
+     * Get a new row reader that reads only up to the given number of rows.
+     *
+     * @param count The maximum number of rows to read.
+     * @return The new row reader.
+     */
+    default RowReader take(int count)
+    {
+        return new RowReader()
+        {
+            private int index = 0;
+
+            @Override
+            public Optional<Row> read() throws IOException
+            {
+                if (index < count)
+                {
+                    return RowReader.this.read();
+                }
+
+                return Optional.empty();
+            }
+
+            @Override
+            public void close() throws IOException
+            {
+                RowReader.this.close();
+            }
+        };
     }
 
     /**

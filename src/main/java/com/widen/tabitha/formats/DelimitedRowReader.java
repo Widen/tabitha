@@ -34,6 +34,10 @@ public class DelimitedRowReader implements RowReader
             0,
             format.isStrictQuotes()
         );
+        try
+        {
+            this.reader.readNext();
+        }catch (Exception e){}
     }
 
     @Override
@@ -50,7 +54,7 @@ public class DelimitedRowReader implements RowReader
             return Optional.empty();
         }
 
-        Value[] values = Utils.mapArray(columns, this::asValue);
+        Value[] values = Utils.mapArray(columns, Value.class, this::asValue);
 
         return Optional.of(schema.createRow(values));
     }

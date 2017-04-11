@@ -3,6 +3,7 @@ package com.widen.tabitha;
 import org.apache.commons.collections4.iterators.ArrayIterator;
 
 import java.util.*;
+import java.util.function.Consumer;
 
 /**
  * Defines a list of columns. Used to create rows that follow the schema.
@@ -77,15 +78,42 @@ public class Schema implements Iterable<Column>
      */
     public Row createRow(Value... values)
     {
-        int count = Math.min(values.length, size());
+        return createRow(Arrays.asList(values));
+    }
+
+    /**
+     * Create a new row following the schema with the given values.
+     *
+     * @param values Values to put in the row, in column order.
+     * @return A new row.
+     */
+    public Row createRow(Collection<Value> values)
+    {
+        int count = Math.min(values.size(), size());
         Row.Cell[] cells = new Row.Cell[count];
 
-        for (int i = 0; i < count; ++i)
+        int column = 0;
+        for (Value value : values)
         {
-            cells[i] = new Row.Cell(columnsByIndex[i], values[i]);
+            cells[column] = new Row.Cell(columnsByIndex[column], value);
+            ++column;
         }
 
         return new Row(cells);
+    }
+
+    /**
+     * Create a new row using a builder.
+     *
+     * @param builderFunction A function that sets fields using a builder.
+     * @return A new row.
+     */
+    public Row createRow(Consumer<RowBuilder> builderFunction)
+    {
+        RowBuilder builder = new RowBuilder(this, size());
+        builderFunction.accept(builder);
+
+        return new Row(builder.cells);
     }
 
     /**
@@ -106,7 +134,7 @@ public class Schema implements Iterable<Column>
      */
     public Optional<Column> getColumn(int index)
     {
-        if (index < columnsByIndex.length)
+        if (index >= 0 && index < columnsByIndex.length)
         {
             return Optional.of(columnsByIndex[index]);
         }
@@ -180,6 +208,55 @@ public class Schema implements Iterable<Column>
         public Schema build()
         {
             return new Schema(columns.toArray(new String[columns.size()]));
+        }
+    }
+
+    /**
+     * Creates rows following a schema incrementally.
+     */
+    public static class RowBuilder
+    {
+        private final Schema schema;
+        private final Row.Cell[] cells;
+
+        private RowBuilder(Schema schema, int size)
+        {
+            this.schema = schema;
+            this.cells = new Row.Cell[size];
+        }
+
+        /**
+         * Set the value of a column.
+         *
+         * @param columnName The name of the column to set.
+         * @param value The column value.
+         */
+        public void set(String columnName, Value value)
+        {
+            Integer index = schema.columnsByName.get(columnName);
+
+            if (index == null)
+            {
+                throw new IllegalArgumentException();
+            }
+
+            cells[index] = new Row.Cell(schema.columnsByIndex[index], value);
+        }
+
+        /**
+         * Set the value of a column.
+         *
+         * @param columnIndex The index of the column to set.
+         * @param value The column value.
+         */
+        public void set(int columnIndex, Value value)
+        {
+            if (columnIndex < 0 || columnIndex >= schema.columnsByIndex.length)
+            {
+                throw new IndexOutOfBoundsException();
+            }
+
+            cells[columnIndex] = new Row.Cell(schema.columnsByIndex[columnIndex], value);
         }
     }
 

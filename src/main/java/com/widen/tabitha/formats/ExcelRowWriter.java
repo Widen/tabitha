@@ -126,20 +126,20 @@ public class ExcelRowWriter implements RowWriter
             Value value = cell.value;
             Cell workbookCell = workbookRow.createCell(column);
 
-            if (value.integerValue().isPresent())
+            if (value.getInteger().isPresent())
             {
                 workbookCell.setCellType(CellType.NUMERIC);
-                workbookCell.setCellValue(value.integerValue().get());
+                workbookCell.setCellValue(value.getInteger().get());
             }
-            else if (value.floatValue().isPresent())
+            else if (value.getFloat().isPresent())
             {
                 workbookCell.setCellType(CellType.NUMERIC);
-                workbookCell.setCellValue(value.floatValue().get());
+                workbookCell.setCellValue(value.getFloat().get());
             }
             else
             {
                 workbookCell.setCellType(CellType.STRING);
-                workbookCell.setCellValue(value.asString());
+                workbookCell.setCellValue(value.toString());
             }
 
             ++column;

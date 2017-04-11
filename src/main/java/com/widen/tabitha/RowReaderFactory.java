@@ -17,6 +17,13 @@ import java.io.InputStream;
 public class RowReaderFactory
 {
     /**
+     * Create a new row reader for the given file path and guess the format based on the filename.
+     */
+    public static RowReader createReader(String path) throws IOException
+    {
+        return createReader(new File(path));
+    }
+    /**
      * Create a new row reader for the given input file and guess the format based on the filename.
      */
     public static RowReader createReader(File file) throws IOException

@@ -8,7 +8,7 @@ public class DelimitedTextFormat
     /**
      * Delimited text format for a CSV file.
      */
-    public static final DelimitedTextFormat CSV = new DelimitedTextFormat(',', '"', '"', false);
+    public static final DelimitedTextFormat CSV = new DelimitedTextFormat(',', '"', '\\', false);
 
     /**
      * Delimited text format for a TSV file.

@@ -22,7 +22,7 @@ public interface Value
     /**
      * Get the string value if the value is a string type.
      */
-    default Optional<java.lang.String> stringValue()
+    default Optional<java.lang.String> getString()
     {
         return Optional.empty();
     }
@@ -30,7 +30,7 @@ public interface Value
     /**
      * Get the boolean value if the value is a boolean type.
      */
-    default Optional<Boolean> booleanValue()
+    default Optional<Boolean> getBoolean()
     {
         return Optional.empty();
     }
@@ -38,7 +38,7 @@ public interface Value
     /**
      * Get the integer value as a long if the value is an integer type.
      */
-    default Optional<Long> integerValue()
+    default Optional<Long> getInteger()
     {
         return Optional.empty();
     }
@@ -46,15 +46,10 @@ public interface Value
     /**
      * Get the float value as a double if the value is a float type.
      */
-    default Optional<Double> floatValue()
+    default Optional<Double> getFloat()
     {
         return Optional.empty();
     }
-
-    /**
-     * Get the value as a string. Non-string values will be converted to a string.
-     */
-    java.lang.String asString();
 
     /**
      * Represents an empty value.
@@ -67,7 +62,7 @@ public interface Value
         }
 
         @Override
-        public java.lang.String asString()
+        public java.lang.String toString()
         {
             return "";
         }
@@ -86,13 +81,13 @@ public interface Value
         }
 
         @Override
-        public Optional<java.lang.String> stringValue()
+        public Optional<java.lang.String> getString()
         {
             return Optional.of(value);
         }
 
         @Override
-        public java.lang.String asString()
+        public java.lang.String toString()
         {
             return value;
         }
@@ -151,13 +146,13 @@ public interface Value
         }
 
         @Override
-        public Optional<Boolean> booleanValue()
+        public Optional<Boolean> getBoolean()
         {
             return Optional.of(value);
         }
 
         @Override
-        public java.lang.String asString()
+        public java.lang.String toString()
         {
             return Boolean.toString(value);
         }
@@ -197,13 +192,13 @@ public interface Value
         }
 
         @Override
-        public Optional<Long> integerValue()
+        public Optional<Long> getInteger()
         {
             return Optional.of(value);
         }
 
         @Override
-        public java.lang.String asString()
+        public java.lang.String toString()
         {
             return Long.toString(value);
         }
@@ -243,13 +238,13 @@ public interface Value
         }
 
         @Override
-        public Optional<Double> floatValue()
+        public Optional<Double> getFloat()
         {
             return Optional.of(value);
         }
 
         @Override
-        public java.lang.String asString()
+        public java.lang.String toString()
         {
             return Double.toString(value);
         }

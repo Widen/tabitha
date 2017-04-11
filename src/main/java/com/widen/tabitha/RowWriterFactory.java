@@ -16,6 +16,14 @@ import java.io.OutputStream;
 public class RowWriterFactory
 {
     /**
+     * Create a new row writer for the given file path and guess the output format based on the filename.
+     */
+    public static RowWriter createWriter(String path) throws IOException
+    {
+        return createWriter(new File(path));
+    }
+
+    /**
      * Create a new row writer for the given output file and guess the output format based on the filename.
      */
     public static RowWriter createWriter(File file) throws IOException

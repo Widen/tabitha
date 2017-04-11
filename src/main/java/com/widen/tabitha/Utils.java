@@ -1,5 +1,6 @@
 package com.widen.tabitha;
 
+import java.lang.reflect.Array;
 import java.util.Iterator;
 import java.util.function.Function;
 
@@ -17,17 +18,15 @@ public class Utils
      * @param <R> The item type of the new array.
      * @return The new array.
      */
-    public static <T, R> R[] mapArray(T[] array, Function<T, R> function)
+    public static <T, R> R[] mapArray(T[] array, Class<R> type, Function<T, R> function)
     {
-        Object[] objects = new Object[array.length];
+        @SuppressWarnings("unchecked")
+        R[] mapped = (R[]) Array.newInstance(type, array.length);
 
         for (int i = 0; i < array.length; ++i)
         {
-            objects[i] = function.apply(array[i]);
+            mapped[i] = function.apply(array[i]);
         }
-
-        @SuppressWarnings("unchecked")
-        R[] mapped = (R[]) objects;
 
         return mapped;
     }
