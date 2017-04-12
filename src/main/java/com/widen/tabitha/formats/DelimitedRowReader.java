@@ -50,7 +50,7 @@ public class DelimitedRowReader implements RowReader
             return Optional.empty();
         }
 
-        Value[] values = Utils.mapArray(columns, Value.class, this::asValue);
+        Variant[] values = Utils.mapArray(columns, Variant.class, this::asVariant);
 
         return Optional.of(schema.createRow(values));
     }
@@ -68,13 +68,13 @@ public class DelimitedRowReader implements RowReader
         schema = builder.build();
     }
 
-    private Value asValue(String value)
+    private Variant asVariant(String value)
     {
         if (StringUtils.isNotBlank(value))
         {
-            return new Value.String(value);
+            return new Variant.String(value);
         }
 
-        return Value.NONE;
+        return Variant.NONE;
     }
 }

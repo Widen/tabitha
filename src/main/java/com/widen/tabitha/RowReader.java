@@ -232,7 +232,7 @@ public interface RowReader extends Iterable<Row>, Closeable
      * @param predicate A predicate to apply to each value in the column to determine if the row should be included.
      * @return A filtered row reader.
      */
-    default RowReader filterBy(String column, Predicate<Value> predicate)
+    default RowReader filterBy(String column, Predicate<Variant> predicate)
     {
         return filter(row -> row.get(column)
             .map(predicate::test)

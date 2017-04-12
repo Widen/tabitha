@@ -4,7 +4,7 @@ import com.opencsv.CSVWriter;
 import com.widen.tabitha.Row;
 import com.widen.tabitha.RowWriter;
 import com.widen.tabitha.Utils;
-import com.widen.tabitha.Value;
+import com.widen.tabitha.Variant;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -39,7 +39,7 @@ public class DelimitedRowWriter implements RowWriter
             headersWritten = true;
         }
 
-        String[] cells = Utils.mapArray(row.values(), String.class, Value::toString);
+        String[] cells = Utils.mapArray(row.values(), String.class, Variant::toString);
 
         int index = 0;
         for (Row.Cell cell : row)

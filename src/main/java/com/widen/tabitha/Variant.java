@@ -4,57 +4,63 @@ import java.util.Optional;
 
 /**
  * A boxed type for a typed primitive value.
- *
- * By default a value can either be a {@link String}, a {@link Bool}, an {@link Int}, a {@link Float}, or {@link #NONE}.
+ * <p>
+ * A variant can either be a {@link Bool}, a {@link String}, an {@link Int}, a {@link Float}, or {@link #NONE}.
  */
-public interface Value
+public abstract class Variant
 {
     /**
-     * Check if the value is empty.
+     * Check if the variant is empty.
      *
-     * @return True if the value is equal to {@link #NONE}, otherwise false.
+     * @return True if the variant is equal to {@link #NONE}, otherwise false.
      */
-    default boolean isNone()
+    public boolean isNone()
     {
         return false;
     }
 
     /**
-     * Get the string value if the value is a string type.
+     * Get the string value if this is a string variant.
      */
-    default Optional<java.lang.String> getString()
+    public Optional<java.lang.String> getString()
     {
         return Optional.empty();
     }
 
     /**
-     * Get the boolean value if the value is a boolean type.
+     * Get the boolean value if this is a boolean variant.
      */
-    default Optional<Boolean> getBoolean()
+    public Optional<Boolean> getBoolean()
     {
         return Optional.empty();
     }
 
     /**
-     * Get the integer value as a long if the value is an integer type.
+     * Get the integer value as a long if this is an integer variant.
      */
-    default Optional<Long> getInteger()
+    public Optional<Long> getInteger()
     {
         return Optional.empty();
     }
 
     /**
-     * Get the float value as a double if the value is a float type.
+     * Get the float value as a double if this is a float variant.
      */
-    default Optional<Double> getFloat()
+    public Optional<Double> getFloat()
     {
         return Optional.empty();
     }
 
+    // Private to prevent extending with unbounded variant types.
+    private Variant()
+    {
+    }
+
     /**
-     * Represents an empty value.
+     * A variant that represents an empty value.
      */
-    Value NONE = new Value() {
+    public static final Variant NONE = new Variant()
+    {
         @Override
         public boolean isNone()
         {
@@ -69,51 +75,12 @@ public interface Value
     };
 
     /**
-     * A string value.
+     * A variant representing a boolean true or false value.
      */
-    class String implements Value
+    public static final class Bool extends Variant
     {
-        private final java.lang.String value;
+        private final boolean value;
 
-        public String(java.lang.String value)
-        {
-            this.value = value;
-        }
-
-        @Override
-        public Optional<java.lang.String> getString()
-        {
-            return Optional.of(value);
-        }
-
-        @Override
-        public java.lang.String toString()
-        {
-            return value;
-        }
-
-        @Override
-        public boolean equals(Object other)
-        {
-            if (value.equals(other))
-            {
-                return true;
-            }
-
-            if (other instanceof String)
-            {
-                return value.equals(((String) other).value);
-            }
-
-            return false;
-        }
-    }
-
-    /**
-     * A boolean true or false value.
-     */
-    class Bool implements Value
-    {
         /**
          * The boxed value of {@code true}.
          */
@@ -123,9 +90,6 @@ public interface Value
          * The boxed value of {@code false}.
          */
         public static final Bool FALSE = new Bool(false);
-
-        // The value of the boolean.
-        private boolean value;
 
         /**
          * Get a {@link Bool} instance representing the given boolean value.
@@ -180,12 +144,63 @@ public interface Value
     }
 
     /**
-     * An integer value.
+     * A variant containing a string.
      */
-    class Int implements Value
+    public static final class String extends Variant
     {
-        private long value;
+        private final java.lang.String value;
 
+        /**
+         * Create a new string variant.
+         *
+         * @param value The string value.
+         */
+        public String(java.lang.String value)
+        {
+            this.value = value;
+        }
+
+        @Override
+        public Optional<java.lang.String> getString()
+        {
+            return Optional.of(value);
+        }
+
+        @Override
+        public java.lang.String toString()
+        {
+            return value;
+        }
+
+        @Override
+        public boolean equals(Object other)
+        {
+            if (value.equals(other))
+            {
+                return true;
+            }
+
+            if (other instanceof String)
+            {
+                return value.equals(((String) other).value);
+            }
+
+            return false;
+        }
+    }
+
+    /**
+     * A variant containing an integer.
+     */
+    public static final class Int extends Variant
+    {
+        private final long value;
+
+        /**
+         * Create a new integer variant.
+         *
+         * @param value The integer value.
+         */
         public Int(long value)
         {
             this.value = value;
@@ -226,12 +241,17 @@ public interface Value
     }
 
     /**
-     * A floating-point number. Stored as a double-width float.
+     * A variant containing a floating-point number. Stored as a double-width float.
      */
-    class Float implements Value
+    public static final class Float extends Variant
     {
-        private double value;
+        private final double value;
 
+        /**
+         * Create a new float variant.
+         *
+         * @param value The float value.
+         */
         public Float(double value)
         {
             this.value = value;

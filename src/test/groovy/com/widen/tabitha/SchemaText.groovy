@@ -2,7 +2,7 @@ package com.widen.tabitha
 
 import spock.lang.*
 
-class ColumnIndexText extends Specification {
+class SchemaText extends Specification {
     def "duplicate column names"() {
         given:
         def builder = new Schema.Builder()

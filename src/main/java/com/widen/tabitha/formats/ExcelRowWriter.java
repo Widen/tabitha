@@ -3,7 +3,7 @@ package com.widen.tabitha.formats;
 import com.widen.tabitha.Column;
 import com.widen.tabitha.Row;
 import com.widen.tabitha.RowWriter;
-import com.widen.tabitha.Value;
+import com.widen.tabitha.Variant;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
@@ -123,7 +123,7 @@ public class ExcelRowWriter implements RowWriter
         int column = 0;
         for (Row.Cell cell : row)
         {
-            Value value = cell.value;
+            Variant value = cell.value;
             Cell workbookCell = workbookRow.createCell(column);
 
             if (value.getInteger().isPresent())

@@ -76,7 +76,7 @@ public class Schema implements Iterable<Column>
      * @param values Values to put in the row, in column order.
      * @return A new row.
      */
-    public Row createRow(Value... values)
+    public Row createRow(Variant... values)
     {
         return createRow(Arrays.asList(values));
     }
@@ -87,13 +87,13 @@ public class Schema implements Iterable<Column>
      * @param values Values to put in the row, in column order.
      * @return A new row.
      */
-    public Row createRow(Collection<Value> values)
+    public Row createRow(Collection<Variant> values)
     {
         int count = Math.min(values.size(), size());
         Row.Cell[] cells = new Row.Cell[count];
 
         int column = 0;
-        for (Value value : values)
+        for (Variant value : values)
         {
             cells[column] = new Row.Cell(columnsByIndex[column], value);
             ++column;
@@ -231,7 +231,7 @@ public class Schema implements Iterable<Column>
          * @param columnName The name of the column to set.
          * @param value The column value.
          */
-        public void set(String columnName, Value value)
+        public void set(String columnName, Variant value)
         {
             Integer index = schema.columnsByName.get(columnName);
 
@@ -249,7 +249,7 @@ public class Schema implements Iterable<Column>
          * @param columnIndex The index of the column to set.
          * @param value The column value.
          */
-        public void set(int columnIndex, Value value)
+        public void set(int columnIndex, Variant value)
         {
             if (columnIndex < 0 || columnIndex >= schema.columnsByIndex.length)
             {

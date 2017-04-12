@@ -55,7 +55,7 @@ public class Row implements Iterable<Row.Cell>
      * @param name The name of the column.
      * @return The value for the given column, if present.
      */
-    public Optional<Value> get(String name)
+    public Optional<Variant> get(String name)
     {
         for (Cell cell : cells)
         {
@@ -74,7 +74,7 @@ public class Row implements Iterable<Row.Cell>
      * @param index The index of the column.
      * @return The value for the given column, if present.
      */
-    public Optional<Value> get(int index)
+    public Optional<Variant> get(int index)
     {
         if (index >= cells.length)
         {
@@ -99,9 +99,9 @@ public class Row implements Iterable<Row.Cell>
      *
      * @return Array of values.
      */
-    public Value[] values()
+    public Variant[] values()
     {
-        return Utils.mapArray(cells, Value.class, cell -> cell.value);
+        return Utils.mapArray(cells, Variant.class, cell -> cell.value);
     }
 
     /**
@@ -162,7 +162,7 @@ public class Row implements Iterable<Row.Cell>
         /**
          * The cell value.
          */
-        public final Value value;
+        public final Variant value;
 
         /**
          * Create a new cell.
@@ -170,7 +170,7 @@ public class Row implements Iterable<Row.Cell>
          * @param column The cell column.
          * @param value The cell value.
          */
-        Cell(Column column, Value value)
+        Cell(Column column, Variant value)
         {
             if (column == null || value == null)
             {

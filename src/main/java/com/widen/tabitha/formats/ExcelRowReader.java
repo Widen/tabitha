@@ -3,7 +3,7 @@ package com.widen.tabitha.formats;
 import com.widen.tabitha.Row;
 import com.widen.tabitha.RowReader;
 import com.widen.tabitha.Schema;
-import com.widen.tabitha.Value;
+import com.widen.tabitha.Variant;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.*;
@@ -51,7 +51,7 @@ public class ExcelRowReader implements RowReader
 
         if (row != null)
         {
-            Value[] values = new Value[row.getLastCellNum()];
+            Variant[] values = new Variant[row.getLastCellNum()];
             for (int i = 0; i < row.getLastCellNum(); ++i)
             {
                 values[i] = getCellValue(row.getCell(i));
@@ -95,11 +95,11 @@ public class ExcelRowReader implements RowReader
         return row;
     }
 
-    private Value getCellValue(Cell cell)
+    private Variant getCellValue(Cell cell)
     {
         if (cell == null)
         {
-            return Value.NONE;
+            return Variant.NONE;
         }
 
         switch (cell.getCellTypeEnum())
@@ -108,17 +108,17 @@ public class ExcelRowReader implements RowReader
                 String string = cell.getRichStringCellValue().getString();
                 if (StringUtils.isNotBlank(string))
                 {
-                    return new Value.String(string);
+                    return new Variant.String(string);
                 }
-                return Value.NONE;
+                return Variant.NONE;
 
             case NUMERIC:
                 if (DateUtil.isCellDateFormatted(cell))
                 {
                     Date dateVal = cell.getDateCellValue();
-                    return new Value.String(new SimpleDateFormat().format(dateVal));
+                    return new Variant.String(new SimpleDateFormat().format(dateVal));
                 }
-                return new Value.Float(cell.getNumericCellValue());
+                return new Variant.Float(cell.getNumericCellValue());
 
             default:
                 throw new RuntimeException("Unexpected Cell type at row=$curRowIx, col=$curCol [${curCell.cellType}]");
