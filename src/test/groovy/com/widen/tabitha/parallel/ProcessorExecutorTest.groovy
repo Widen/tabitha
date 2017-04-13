@@ -3,7 +3,7 @@ package com.widen.tabitha.parallel
 import com.widen.tabitha.Row
 import com.widen.tabitha.RowReader
 import com.widen.tabitha.Schema
-import com.widen.tabitha.Value
+import com.widen.tabitha.Variant
 import spock.lang.*
 
 import java.util.concurrent.atomic.AtomicInteger
@@ -23,7 +23,7 @@ class ProcessorExecutorTest extends Specification {
             Optional<Row> read() {
                 if (rowsCreated < 1000) {
                     ++rowsCreated;
-                    return Optional.of(schema.createRow(Value.NONE))
+                    return Optional.of(schema.createRow(Variant.NONE))
                 }
 
                 return Optional.empty()
