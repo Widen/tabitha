@@ -10,6 +10,56 @@ import java.util.Optional;
 public abstract class Variant
 {
     /**
+     * Create a new boolean variant.
+     *
+     * @param value The boolean value.
+     * @return The new variant.
+     */
+    public static Variant of(boolean value)
+    {
+        // Use static objects already initialized to save memory.
+        return value ? Bool.TRUE : Bool.FALSE;
+    }
+
+    /**
+     * Create a new string variant.
+     *
+     * @param value The string value.
+     * @return The new variant.
+     */
+    public static Variant of(java.lang.String value)
+    {
+        if (value == null)
+        {
+            return NONE;
+        }
+
+        return new String(value);
+    }
+
+    /**
+     * Create a new integer variant.
+     *
+     * @param value The integer value.
+     * @return The new variant.
+     */
+    public static Variant of(long value)
+    {
+        return new Int(value);
+    }
+
+    /**
+     * Create a new floating-point variant.
+     *
+     * @param value The floating-point value.
+     * @return The new variant.
+     */
+    public static Variant of(double value)
+    {
+        return new Float(value);
+    }
+
+    /**
      * Check if the variant is empty.
      *
      * @return True if the variant is equal to {@link #NONE}, otherwise false.
@@ -90,18 +140,6 @@ public abstract class Variant
          * The boxed value of {@code false}.
          */
         public static final Bool FALSE = new Bool(false);
-
-        /**
-         * Get a {@link Bool} instance representing the given boolean value.
-         *
-         * @param value The boolean value.
-         * @return The equivalent value instance.
-         */
-        public static Bool valueOf(boolean value)
-        {
-            // Use static objects already initialized to save memory.
-            return value ? TRUE : FALSE;
-        }
 
         // Private to prevent more than two instances from existing.
         private Bool(boolean value)

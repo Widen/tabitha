@@ -110,10 +110,20 @@ public class Schema implements Iterable<Column>
      */
     public Row createRow(Consumer<RowBuilder> builderFunction)
     {
-        RowBuilder builder = new RowBuilder(this, size());
+        RowBuilder builder = rowBuilder();
         builderFunction.accept(builder);
 
-        return new Row(builder.cells);
+        return builder.build();
+    }
+
+    /**
+     * Create a new builder for creating a new row.
+     *
+     * @return A new row builder.
+     */
+    public RowBuilder rowBuilder()
+    {
+        return new RowBuilder(this, size());
     }
 
     /**
@@ -257,6 +267,19 @@ public class Schema implements Iterable<Column>
             }
 
             cells[columnIndex] = new Row.Cell(schema.columnsByIndex[columnIndex], value);
+        }
+
+        /**
+         * Create a row from the current row builder.
+         *
+         * @return The new row.
+         */
+        public Row build()
+        {
+            Row.Cell[] copy = new Row.Cell[cells.length];
+            System.arraycopy(cells, 0, copy, 0, cells.length);
+
+            return new Row(copy);
         }
     }
 

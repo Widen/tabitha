@@ -38,8 +38,7 @@ public interface RowReader extends Iterable<Row>, Closeable
             {
                 if (index < rows.length)
                 {
-                    ++index;
-                    return Optional.of(rows[index]);
+                    return Optional.of(rows[index++]);
                 }
 
                 return Optional.empty();
@@ -287,6 +286,38 @@ public interface RowReader extends Iterable<Row>, Closeable
     }
 
     /**
+     * Get a new row reader that skips a certain number of rows.
+     *
+     * @param count The number of rows to skip.
+     * @return The new row reader.
+     */
+    default RowReader skip(int count)
+    {
+        return new RowReader()
+        {
+            private int skipped = 0;
+
+            @Override
+            public Optional<Row> read() throws IOException
+            {
+                while (skipped < count)
+                {
+                    RowReader.this.read();
+                    ++skipped;
+                }
+
+                return RowReader.this.read();
+            }
+
+            @Override
+            public void close() throws IOException
+            {
+                RowReader.this.close();
+            }
+        };
+    }
+
+    /**
      * Get a new row reader that reads only up to the given number of rows.
      *
      * @param count The maximum number of rows to read.
@@ -303,7 +334,14 @@ public interface RowReader extends Iterable<Row>, Closeable
             {
                 if (index < count)
                 {
-                    return RowReader.this.read();
+                    Optional<Row> row = RowReader.this.read();
+
+                    if (row.isPresent())
+                    {
+                        ++index;
+                    }
+
+                    return row;
                 }
 
                 return Optional.empty();
