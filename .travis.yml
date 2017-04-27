@@ -3,8 +3,6 @@ jdk:
 - oraclejdk8
 before_script:
 - export TZ=America/Chicago
-- git config --global user.email "widendev@widen.com"
-- git config --global user.name "Widen Bot"
 script:
 - "./gradlew test"
 before_cache:
