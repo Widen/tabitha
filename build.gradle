@@ -5,7 +5,7 @@ apply plugin: 'signing'
 
 group 'com.widen.oss'
 archivesBaseName = 'tabitha'
-version '0.1.0-SNAPSHOT'
+version '0.1.0-alpha1'
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
