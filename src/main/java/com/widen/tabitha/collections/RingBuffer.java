@@ -25,6 +25,8 @@ public class RingBuffer<E> extends AbstractCollection<E> implements Collection<E
 
     /**
      * Create a new empty ring buffer with a given capacity.
+     *
+     * @param initialCapacity The initial memory capacity of the buffer.
      */
     public RingBuffer(int initialCapacity)
     {
@@ -35,6 +37,8 @@ public class RingBuffer<E> extends AbstractCollection<E> implements Collection<E
 
     /**
      * Create a new ring buffer from the given array.
+     *
+     * @param elements An array of elements to create a buffer from.
      */
     public RingBuffer(E[] elements)
     {
@@ -43,9 +47,6 @@ public class RingBuffer<E> extends AbstractCollection<E> implements Collection<E
         size = elements.length;
     }
 
-    /**
-     * Gets the number of elements in the buffer.
-     */
     @Override
     public int size()
     {
@@ -54,6 +55,8 @@ public class RingBuffer<E> extends AbstractCollection<E> implements Collection<E
 
     /**
      * Gets the number of elements that the buffer can hold without reallocating.
+     *
+     * @return The buffer capacity.
      */
     public int capacity()
     {
@@ -62,6 +65,9 @@ public class RingBuffer<E> extends AbstractCollection<E> implements Collection<E
 
     /**
      * Get an element in the buffer by index.
+     *
+     * @param index The element index.
+     * @return The element, or empty if the index does not exist.
      */
     public Optional<E> get(int index)
     {
@@ -75,6 +81,9 @@ public class RingBuffer<E> extends AbstractCollection<E> implements Collection<E
 
     /**
      * Remove the element by index.
+     *
+     * @param index The element index.
+     * @return True if the element was removed.
      */
     public boolean remove(int index)
     {
@@ -102,6 +111,8 @@ public class RingBuffer<E> extends AbstractCollection<E> implements Collection<E
 
     /**
      * Get the element at the front of the buffer.
+     *
+     * @return The element, or empty if the buffer is empty.
      */
     public Optional<E> front()
     {
@@ -117,6 +128,8 @@ public class RingBuffer<E> extends AbstractCollection<E> implements Collection<E
 
     /**
      * Get the element at the back of the buffer.
+     *
+     * @return The element, or empty if the buffer is empty.
      */
     public Optional<E> back()
     {
@@ -133,6 +146,8 @@ public class RingBuffer<E> extends AbstractCollection<E> implements Collection<E
 
     /**
      * Add an element to the front of the buffer.
+     *
+     * @param element The element to push.
      */
     public void pushFront(E element)
     {
@@ -150,6 +165,8 @@ public class RingBuffer<E> extends AbstractCollection<E> implements Collection<E
 
     /**
      * Add an element to the back of the buffer.
+     *
+     * @param element The element to push.
      */
     public void pushBack(E element)
     {
@@ -166,6 +183,8 @@ public class RingBuffer<E> extends AbstractCollection<E> implements Collection<E
 
     /**
      * Remove the element at the front of the buffer.
+     *
+     * @return The element, or empty if the buffer is empty.
      */
     public Optional<E> popFront()
     {
@@ -184,6 +203,8 @@ public class RingBuffer<E> extends AbstractCollection<E> implements Collection<E
 
     /**
      * Remove the element at the back of the buffer.
+     *
+     * @return The element, or empty if the buffer is empty.
      */
     public Optional<E> popBack()
     {

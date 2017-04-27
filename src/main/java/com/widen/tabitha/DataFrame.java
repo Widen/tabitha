@@ -60,6 +60,8 @@ public class DataFrame implements Iterable<Row>, Closeable
 
     /**
      * Checks if this data frame is a streaming data frame.
+     *
+     * @return True if this is a streaming data frame.
      */
     public boolean isStreaming()
     {
@@ -68,6 +70,8 @@ public class DataFrame implements Iterable<Row>, Closeable
 
     /**
      * Checks if the data frame is currently empty.
+     *
+     * @return True if the data frame contains no elements.
      */
     public boolean isEmpty()
     {
@@ -76,6 +80,8 @@ public class DataFrame implements Iterable<Row>, Closeable
 
     /**
      * Get the number of rows in the data frame.
+     *
+     * @return The data frame size.
      */
     public int size()
     {
@@ -218,7 +224,7 @@ public class DataFrame implements Iterable<Row>, Closeable
      * If this is a streaming data frame, the underlying reader will be closed and no more rows will be read. This
      * method has no effect on non-streaming data frames.
      *
-     * @throws IOException
+     * @throws IOException Thrown if an I/O error occurs.
      */
     @Override
     public void close() throws IOException

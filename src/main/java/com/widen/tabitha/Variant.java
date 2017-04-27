@@ -71,6 +71,8 @@ public abstract class Variant
 
     /**
      * Get the string value if this is a string variant.
+     *
+     * @return The string value, or empty if this is not a string variant.
      */
     public Optional<java.lang.String> getString()
     {
@@ -79,6 +81,8 @@ public abstract class Variant
 
     /**
      * Get the boolean value if this is a boolean variant.
+     *
+     * @return The boolean value, or empty if this is not a boolean variant.
      */
     public Optional<Boolean> getBoolean()
     {
@@ -87,6 +91,8 @@ public abstract class Variant
 
     /**
      * Get the integer value as a long if this is an integer variant.
+     *
+     * @return The integer value, or empty if this is not an integer variant.
      */
     public Optional<Long> getInteger()
     {
@@ -95,6 +101,8 @@ public abstract class Variant
 
     /**
      * Get the float value as a double if this is a float variant.
+     *
+     * @return The float value, or empty if this is not a float variant.
      */
     public Optional<Double> getFloat()
     {

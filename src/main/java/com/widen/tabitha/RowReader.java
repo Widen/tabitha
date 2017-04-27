@@ -228,6 +228,7 @@ public interface RowReader extends Iterable<Row>, Closeable
      * Filter rows returned based on the value of a given column. If the given column is not set for a row, that row is
      * filtered out.
      *
+     * @param column The column to filter by.
      * @param predicate A predicate to apply to each value in the column to determine if the row should be included.
      * @return A filtered row reader.
      */
@@ -359,6 +360,7 @@ public interface RowReader extends Iterable<Row>, Closeable
      * Pipe all remaining rows in this reader into a writer.
      *
      * @param rowWriter A row writer to write all rows to.
+     * @throws IOException Thrown if an I/O error occurs.
      */
     default void pipe(RowWriter rowWriter) throws IOException
     {

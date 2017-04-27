@@ -21,6 +21,7 @@ public class ProcessorExecutor
      * Create a new processor executor with the default configuration.
      *
      * @param rowProcessor Processor to process rows with.
+     * @return The new executor.
      */
     public static ProcessorExecutor createDefault(RowProcessor rowProcessor)
     {
