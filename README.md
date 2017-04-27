@@ -10,4 +10,4 @@ This library is currently under active development and is pre-release.
 Documentation will be available in this repository, but is not yet written. For now, check the source for interesting comments that may help explain usage. Ideally, the class and method names should be pretty clear as to what they do.
 
 ## License
-TBD
+Available under the MIT license. See [the license file](LICENSE.md) for details.
