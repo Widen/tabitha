@@ -126,7 +126,11 @@ public class ExcelRowWriter implements RowWriter
             Variant value = cell.value;
             Cell workbookCell = workbookRow.createCell(column);
 
-            if (value.getInteger().isPresent())
+            if (value.isNone())
+            {
+                workbookCell.setCellType(CellType.BLANK);
+            }
+            else if (value.getInteger().isPresent())
             {
                 workbookCell.setCellType(CellType.NUMERIC);
                 workbookCell.setCellValue(value.getInteger().get());
@@ -135,6 +139,11 @@ public class ExcelRowWriter implements RowWriter
             {
                 workbookCell.setCellType(CellType.NUMERIC);
                 workbookCell.setCellValue(value.getFloat().get());
+            }
+            else if (value.getBoolean().isPresent())
+            {
+                workbookCell.setCellType(CellType.BOOLEAN);
+                workbookCell.setCellValue(value.getBoolean().get());
             }
             else
             {

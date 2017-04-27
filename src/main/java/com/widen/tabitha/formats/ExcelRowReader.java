@@ -7,6 +7,7 @@ import com.widen.tabitha.Variant;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.util.CellReference;
 
 import java.io.File;
 import java.io.IOException;
@@ -120,8 +121,14 @@ public class ExcelRowReader implements RowReader
                 }
                 return new Variant.Float(cell.getNumericCellValue());
 
+            case BOOLEAN:
+                return Variant.of(cell.getBooleanCellValue());
+
+            case BLANK:
+                return Variant.NONE;
+
             default:
-                throw new RuntimeException("Unexpected Cell type at row=$curRowIx, col=$curCol [${curCell.cellType}]");
+                throw new RuntimeException("Unexpected Cell type at row " + cell.getRowIndex() + ", col " + CellReference.convertNumToColString(cell.getColumnIndex()) + ", [" + cell.getCellTypeEnum().name() + "]");
         }
     }
 }
