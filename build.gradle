@@ -6,7 +6,14 @@ apply plugin: 'signing'
 group 'com.widen.oss'
 archivesBaseName = 'tabitha'
 version '0.1.0-SNAPSHOT'
+
 sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+ext.isReleaseVersion = !version.endsWith("SNAPSHOT")
+ext.username = hasProperty("ossrhUsername") ? ossrhUsername : System.getenv("OSSRH_USERNAME")
+ext.password = hasProperty("ossrhPassword") ? ossrhPassword : System.getenv("OSSRH_PASSWORD")
+
 
 repositories {
     mavenCentral()
@@ -24,6 +31,7 @@ dependencies {
     testCompile 'org.spockframework:spock-core:1.0-groovy-2.4'
     testCompile 'cglib:cglib-nodep:3.2.5'
 }
+
 
 task javadocJar(type: Jar) {
     classifier = 'javadoc'
@@ -43,6 +51,9 @@ artifacts {
 
 signing {
     sign configurations.archives
+    required {
+        isReleaseVersion && gradle.taskGraph.hasTask("uploadArchives")
+    }
 }
 
 uploadArchives {
@@ -51,11 +62,11 @@ uploadArchives {
             beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
 
             repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
-                authentication(userName: ossrhUsername, password: ossrhPassword)
+                authentication(userName: username, password: password)
             }
 
             snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
-                authentication(userName: ossrhUsername, password: ossrhPassword)
+                authentication(userName: username, password: password)
             }
 
             pom.project {
