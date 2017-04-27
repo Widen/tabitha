@@ -3,6 +3,7 @@ package com.widen.tabitha;
 import org.apache.commons.collections4.iterators.ArrayIterator;
 
 import java.util.*;
+import java.util.function.Function;
 
 /**
  * Stores a single row of data values, indexed by column.
@@ -102,6 +103,24 @@ public class Row implements Iterable<Row.Cell>
     public Variant[] values()
     {
         return Utils.mapArray(cells, Variant.class, cell -> cell.value);
+    }
+
+    /**
+     * Create a new row, applying a function to every cell value.
+     *
+     * @param mapper A function to apply to each cell value.
+     * @return The new row.
+     */
+    public Row map(Function<Variant, Variant> mapper)
+    {
+        Cell[] mapped = new Cell[cells.length];
+
+        for (int i = 0; i < mapped.length; ++i)
+        {
+            mapped[i] = new Cell(cells[i].column, mapper.apply(cells[i].value));
+        }
+
+        return new Row(mapped);
     }
 
     /**
