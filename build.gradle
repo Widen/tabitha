@@ -1,10 +1,11 @@
-group 'widen'
-version '1.0'
-
 apply plugin: 'groovy'
 apply plugin: 'java'
 apply plugin: 'maven'
+apply plugin: 'signing'
 
+group 'com.widen.oss'
+archivesBaseName = 'tabitha'
+version '0.1.0-SNAPSHOT'
 sourceCompatibility = 1.8
 
 repositories {
@@ -21,4 +22,69 @@ dependencies {
     testCompile 'org.codehaus.groovy:groovy-all:2.4.1'
     testCompile 'org.spockframework:spock-core:1.0-groovy-2.4'
     testCompile 'cglib:cglib-nodep:3.2.5'
+}
+
+task javadocJar(type: Jar) {
+    classifier = 'javadoc'
+    from javadoc
+}
+
+task sourcesJar(type: Jar) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+artifacts {
+    archives jar
+    archives javadocJar
+    archives sourcesJar
+}
+
+signing {
+    sign configurations.archives
+}
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+
+            repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+                authentication(userName: ossrhUsername, password: ossrhPassword)
+            }
+
+            snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
+                authentication(userName: ossrhUsername, password: ossrhPassword)
+            }
+
+            pom.project {
+                name 'Tabitha'
+                packaging 'jar'
+                description 'Tabular data reading, writing, and processing library'
+                url 'https://github.com/Widen/tabitha'
+
+                scm {
+                    url 'https://github.com/Widen/tabitha'
+                    connection 'scm:git@github.com:Widen/tabitha.git'
+                    developerConnection 'scm:git@github.com:Widen/tabitha.git'
+                }
+
+                licenses {
+                    license {
+                        name 'The MIT License'
+                        url 'https://opensource.org/licenses/MIT'
+                        distribution 'repo'
+                    }
+                }
+
+                developers {
+                    developer {
+                        id 'scoakley'
+                        name 'Stephen Coakley'
+                        email 'scoakley@widen.com'
+                    }
+                }
+            }
+        }
+    }
 }
