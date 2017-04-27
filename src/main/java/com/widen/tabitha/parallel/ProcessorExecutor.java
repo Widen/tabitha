@@ -2,13 +2,9 @@ package com.widen.tabitha.parallel;
 
 import com.widen.tabitha.Row;
 import com.widen.tabitha.RowReader;
+import com.widen.tabitha.collections.BoundedQueue;
 
-import java.io.IOException;
-import java.util.Map;
 import java.util.Stack;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Consumer;
 
 /**
  * Executes a row processor in an efficient multi-threaded manner.
@@ -18,7 +14,7 @@ public class ProcessorExecutor
     private static final int DEFAULT_BUFFER_SIZE = 4096;
 
     private final Stack<Thread> threadPool;
-    private final ArrayBlockingQueue<MaybePoison> buffer;
+    private final BoundedQueue<Row> queue;
     private final RowProcessor processor;
 
     /**
@@ -34,13 +30,13 @@ public class ProcessorExecutor
     /**
      * Create a new processor executor.
      *
-     * @param bufferSize Maximum number of rows to buffer.
+     * @param bufferSize Maximum number of rows to queue.
      * @param rowProcessor Processor to process rows with.
      */
     public ProcessorExecutor(int bufferSize, RowProcessor rowProcessor)
     {
         threadPool = new Stack<>();
-        buffer = new ArrayBlockingQueue<>(bufferSize);
+        queue = new BoundedQueue<>(bufferSize);
         processor = rowProcessor;
     }
 
@@ -51,12 +47,13 @@ public class ProcessorExecutor
      */
     public void execute(RowReader rowReader)
     {
-        buffer.clear();
+        queue.clear();
 
-        // Spawn one consumer threads per processor.
-        for (int i = 0; i < Runtime.getRuntime().availableProcessors(); ++i)
+        // Spawn two consumer threads per processor.
+        int count = Runtime.getRuntime().availableProcessors() * 2;
+        for (int i = 0; i < count; ++i)
         {
-            Thread thread = new Thread(this::consumeBuffer);
+            Thread thread = new Thread(this::consumer);
             thread.start();
 
             threadPool.push(thread);
@@ -64,7 +61,7 @@ public class ProcessorExecutor
 
         processor.onStart();
 
-        fillBuffer(rowReader);
+        producer(rowReader);
 
         // Wait for all consumer threads to finish.
         shutdown();
@@ -73,67 +70,35 @@ public class ProcessorExecutor
     }
 
     /**
-     * Fill the buffer with rows read from the given reader.
+     * Fill the queue with rows read from the given reader.
      *
      * @param rowReader Row reader to read from.
      */
-    private void fillBuffer(RowReader rowReader)
+    private void producer(RowReader rowReader)
     {
-        // Block the current thread, filling the buffer up as needed until we reach the end of the reader.
-        rowReader.forEach(row -> {
-            while (true)
-            {
-                try
-                {
-                    buffer.put(new MaybePoison(row));
-                    break;
-                }
-                catch (InterruptedException e)
-                {
-                    // Failed to put the row in the buffer, retry.
-                }
-            }
-        });
+        // Block the current thread, filling the queue up as needed until we reach the end of the reader.
+        rowReader.forEach(queue::enqueue);
 
-        // Poison the queue to indicate we finished.
-        while (true)
-        {
-            try
-            {
-                buffer.put(MaybePoison.POISON);
-                break;
-            }
-            catch (InterruptedException e)
-            {
-                // Retry
-            }
-        }
+        // Done reading, close the queue.
+        queue.close();
     }
 
     /**
-     * Consume rows from the buffer.
+     * Consume rows from the queue and process them.
      */
-    private void consumeBuffer()
+    private void consumer()
     {
         while (true)
         {
-            try
-            {
-                MaybePoison maybePoison = buffer.take();
+            Row row = queue.dequeue();
 
-                // Queue is poisoned, shut down.
-                if (maybePoison == MaybePoison.POISON)
-                {
-                    buffer.put(maybePoison);
-                    break;
-                }
-
-                processor.process(maybePoison.row);
-            }
-            catch (InterruptedException e)
+            if (row == null)
             {
-                // Retry
+                // Queue is closed, shut down.
+                break;
             }
+
+            processor.process(row);
         }
     }
 
@@ -158,17 +123,6 @@ public class ProcessorExecutor
                     // Failed to join, retry.
                 }
             }
-        }
-    }
-
-    private static class MaybePoison
-    {
-        private static MaybePoison POISON = new MaybePoison(null);
-        private final Row row;
-
-        private MaybePoison(Row row)
-        {
-            this.row = row;
         }
     }
 }

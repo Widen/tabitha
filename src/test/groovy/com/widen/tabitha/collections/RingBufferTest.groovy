@@ -6,9 +6,9 @@ class RingBufferTest extends Specification {
     def buffer = new RingBuffer<String>()
 
     def "empty"() {
-        setup:
-        assert buffer.isEmpty()
-        assert buffer.size() == 0
+        expect:
+        buffer.isEmpty()
+        buffer.size() == 0
     }
 
     def "push and pop front"() {
@@ -16,15 +16,16 @@ class RingBufferTest extends Specification {
         def element = "foo"
         buffer.pushFront(element)
 
-        assert !buffer.isEmpty()
-        assert buffer.size() == 1
+        expect:
+        !buffer.isEmpty()
+        buffer.size() == 1
 
-        assert buffer.get(0) == Optional.of(element)
-        assert buffer.popFront() == Optional.of(element)
+        buffer.get(0) == Optional.of(element)
+        buffer.popFront() == Optional.of(element)
 
-        assert buffer.isEmpty()
-        assert buffer.size() == 0
-        assert buffer.popFront() == Optional.empty()
+        buffer.isEmpty()
+        buffer.size() == 0
+        buffer.popFront() == Optional.empty()
     }
 
     def "push and pop back"() {
@@ -32,15 +33,16 @@ class RingBufferTest extends Specification {
         def element = "foo"
         buffer.pushBack(element)
 
-        assert !buffer.isEmpty()
-        assert buffer.size() == 1
+        expect:
+        !buffer.isEmpty()
+        buffer.size() == 1
 
-        assert buffer.get(0) == Optional.of(element)
-        assert buffer.popBack() == Optional.of(element)
+        buffer.get(0) == Optional.of(element)
+        buffer.popBack() == Optional.of(element)
 
-        assert buffer.isEmpty()
-        assert buffer.size() == 0
-        assert buffer.popBack() == Optional.empty()
+        buffer.isEmpty()
+        buffer.size() == 0
+        buffer.popBack() == Optional.empty()
     }
 
     def "mix front and back operations"() {
@@ -50,18 +52,19 @@ class RingBufferTest extends Specification {
         buffer.pushBack(element2)
         buffer.pushFront(element1)
 
-        assert !buffer.isEmpty()
-        assert buffer.size() == 2
+        expect:
+        !buffer.isEmpty()
+        buffer.size() == 2
 
-        assert buffer.get(0) == Optional.of(element1)
-        assert buffer.get(1) == Optional.of(element2)
+        buffer.get(0) == Optional.of(element1)
+        buffer.get(1) == Optional.of(element2)
 
-        assert buffer.popBack() == Optional.of(element2)
-        assert buffer.size() == 1
+        buffer.popBack() == Optional.of(element2)
+        buffer.size() == 1
 
-        assert buffer.popBack() == Optional.of(element1)
-        assert buffer.isEmpty()
-        assert buffer.size() == 0
+        buffer.popBack() == Optional.of(element1)
+        buffer.isEmpty()
+        buffer.size() == 0
     }
 
     def "resize preserves element order"() {
@@ -74,17 +77,18 @@ class RingBufferTest extends Specification {
         buffer.pushFront(element1)
         buffer.pushBack(element1)
 
-        assert !buffer.isEmpty()
-        assert buffer.size() == 3
+        expect:
+        !buffer.isEmpty()
+        buffer.size() == 3
 
-        assert buffer.get(0) == Optional.of(element1)
-        assert buffer.get(1) == Optional.of(element2)
+        buffer.get(0) == Optional.of(element1)
+        buffer.get(1) == Optional.of(element2)
 
-        assert buffer.popBack() == Optional.of(element1)
-        assert buffer.size() == 2
+        buffer.popBack() == Optional.of(element1)
+        buffer.size() == 2
 
-        assert buffer.popBack() == Optional.of(element2)
-        assert !buffer.isEmpty()
-        assert buffer.size() == 1
+        buffer.popBack() == Optional.of(element2)
+        !buffer.isEmpty()
+        buffer.size() == 1
     }
 }
