@@ -1,0 +1,9 @@
+Tabitha Runner
+
+Usage:
+  tabitha-runner [options] <script>
+
+Run a given Groovy script with Tabitha classes already available.
+
+Options:
+  -h, --help    Show this help message.

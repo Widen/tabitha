@@ -7,6 +7,6 @@
 /.idea/workspace.xml
 /.idea/libraries
 /.idea/shelf
-/build
+build
 *.class
 .DS_Store

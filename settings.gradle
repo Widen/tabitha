@@ -1,0 +1,4 @@
+include 'runner'
+
+rootProject.name = 'tabitha'
+project(':runner').name = 'tabitha-runner'

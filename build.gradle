@@ -1,23 +1,42 @@
-apply plugin: 'groovy'
-apply plugin: 'java'
-apply plugin: 'maven'
 apply plugin: 'signing'
 
-group 'com.widen.oss'
-archivesBaseName = 'tabitha'
 version '0.1.0-alpha1'
+archivesBaseName = 'tabitha'
 
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
+allprojects {
+    apply plugin: 'groovy'
+    apply plugin: 'java'
+    apply plugin: 'maven'
 
-ext.isReleaseVersion = !version.endsWith("SNAPSHOT")
-ext.username = hasProperty("ossrhUsername") ? ossrhUsername : System.getenv("OSSRH_USERNAME")
-ext.password = hasProperty("ossrhPassword") ? ossrhPassword : System.getenv("OSSRH_PASSWORD")
+    group 'com.widen.oss'
 
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
 
-repositories {
-    mavenCentral()
+    repositories {
+        mavenCentral()
+    }
+
+    sourceSets {
+        main {
+            java {
+                srcDirs = ['src/main/java']
+            }
+            resources {
+                srcDirs = ['src/main/resources']
+            }
+        }
+        test {
+            groovy {
+                srcDirs = ['src/test/groovy']
+            }
+        }
+    }
 }
+
+ext.isReleaseVersion = !version.endsWith('SNAPSHOT')
+ext.username = hasProperty('ossrhUsername') ? ossrhUsername : System.getenv('OSSRH_USERNAME')
+ext.password = hasProperty('ossrhPassword') ? ossrhPassword : System.getenv('OSSRH_PASSWORD')
 
 dependencies {
     compile 'com.opencsv:opencsv:3.8'
@@ -31,7 +50,6 @@ dependencies {
     testCompile 'org.spockframework:spock-core:1.0-groovy-2.4'
     testCompile 'cglib:cglib-nodep:3.2.5'
 }
-
 
 task javadocJar(type: Jar) {
     classifier = 'javadoc'
@@ -52,7 +70,7 @@ artifacts {
 signing {
     sign configurations.archives
     required {
-        isReleaseVersion && gradle.taskGraph.hasTask("uploadArchives")
+        isReleaseVersion && gradle.taskGraph.hasTask('uploadArchives')
     }
 }
 
@@ -61,11 +79,11 @@ uploadArchives {
         mavenDeployer {
             beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
 
-            repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+            repository(url: 'https://oss.sonatype.org/service/local/staging/deploy/maven2/') {
                 authentication(userName: username, password: password)
             }
 
-            snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
+            snapshotRepository(url: 'https://oss.sonatype.org/content/repositories/snapshots/') {
                 authentication(userName: username, password: password)
             }
 
@@ -74,13 +92,11 @@ uploadArchives {
                 packaging 'jar'
                 description 'Tabular data reading, writing, and processing library'
                 url 'https://github.com/Widen/tabitha'
-
                 scm {
                     url 'https://github.com/Widen/tabitha'
                     connection 'scm:git@github.com:Widen/tabitha.git'
                     developerConnection 'scm:git@github.com:Widen/tabitha.git'
                 }
-
                 licenses {
                     license {
                         name 'The MIT License'
@@ -88,7 +104,6 @@ uploadArchives {
                         distribution 'repo'
                     }
                 }
-
                 developers {
                     developer {
                         id 'scoakley'
