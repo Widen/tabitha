@@ -9,8 +9,7 @@ import java.util.Stack;
 /**
  * Executes a row processor in an efficient multi-threaded manner.
  */
-public class ProcessorExecutor
-{
+public class ProcessorExecutor {
     private static final int DEFAULT_BUFFER_SIZE = 4096;
 
     private final Stack<Thread> threadPool;
@@ -23,19 +22,17 @@ public class ProcessorExecutor
      * @param rowProcessor Processor to process rows with.
      * @return The new executor.
      */
-    public static ProcessorExecutor createDefault(RowProcessor rowProcessor)
-    {
+    public static ProcessorExecutor createDefault(RowProcessor rowProcessor) {
         return new ProcessorExecutor(DEFAULT_BUFFER_SIZE, rowProcessor);
     }
 
     /**
      * Create a new processor executor.
      *
-     * @param bufferSize Maximum number of rows to queue.
+     * @param bufferSize   Maximum number of rows to queue.
      * @param rowProcessor Processor to process rows with.
      */
-    public ProcessorExecutor(int bufferSize, RowProcessor rowProcessor)
-    {
+    public ProcessorExecutor(int bufferSize, RowProcessor rowProcessor) {
         threadPool = new Stack<>();
         queue = new BoundedQueue<>(bufferSize);
         processor = rowProcessor;
@@ -46,14 +43,12 @@ public class ProcessorExecutor
      *
      * @param rowReader Reader to read rows from.
      */
-    public void execute(RowReader rowReader)
-    {
+    public void execute(RowReader rowReader) {
         queue.clear();
 
         // Spawn two consumer threads per processor.
         int count = Runtime.getRuntime().availableProcessors() * 2;
-        for (int i = 0; i < count; ++i)
-        {
+        for (int i = 0; i < count; ++i) {
             Thread thread = new Thread(this::consumer);
             thread.start();
 
@@ -75,8 +70,7 @@ public class ProcessorExecutor
      *
      * @param rowReader Row reader to read from.
      */
-    private void producer(RowReader rowReader)
-    {
+    private void producer(RowReader rowReader) {
         // Block the current thread, filling the queue up as needed until we reach the end of the reader.
         rowReader.forEach(queue::enqueue);
 
@@ -87,14 +81,11 @@ public class ProcessorExecutor
     /**
      * Consume rows from the queue and process them.
      */
-    private void consumer()
-    {
-        while (true)
-        {
+    private void consumer() {
+        while (true) {
             Row row = queue.dequeue();
 
-            if (row == null)
-            {
+            if (row == null) {
                 // Queue is closed, shut down.
                 break;
             }
@@ -106,21 +97,15 @@ public class ProcessorExecutor
     /**
      * Shutdown all consumer threads in the pool.
      */
-    private void shutdown()
-    {
+    private void shutdown() {
         // Wait for all threads to terminate.
-        while (!threadPool.isEmpty())
-        {
+        while (!threadPool.isEmpty()) {
             Thread thread = threadPool.pop();
-            while (true)
-            {
-                try
-                {
+            while (true) {
+                try {
                     thread.join();
                     break;
-                }
-                catch (InterruptedException e)
-                {
+                } catch (InterruptedException e) {
                     // Failed to join, retry.
                 }
             }

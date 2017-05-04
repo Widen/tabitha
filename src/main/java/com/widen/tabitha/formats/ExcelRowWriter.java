@@ -16,12 +16,11 @@ import java.io.OutputStream;
 
 /**
  * Writes rows to an Excel spreadsheet file. Supports creating XLS and XLSX files.
- *
+ * <p>
  * This writer writes rows into memory and flushes changes all at once when {@link #close()} is called. This writer
  * should be avoided in memory-constrained environments.
  */
-public class ExcelRowWriter implements RowWriter
-{
+public class ExcelRowWriter implements RowWriter {
     private OutputStream output;
     private Workbook workbook;
     private Sheet sheet;
@@ -33,56 +32,48 @@ public class ExcelRowWriter implements RowWriter
      *
      * @param output The output stream to write to.
      */
-    public ExcelRowWriter(OutputStream output)
-    {
+    public ExcelRowWriter(OutputStream output) {
         this(output, false);
     }
 
     /**
      * Create a new Excel row writer.
      *
-     * @param output The output stream to write to.
+     * @param output       The output stream to write to.
      * @param legacyFormat Whether the legacy XLS format should be used.
      */
-    public ExcelRowWriter(OutputStream output, boolean legacyFormat)
-    {
+    public ExcelRowWriter(OutputStream output, boolean legacyFormat) {
         this(output, legacyFormat, null);
     }
 
     /**
      * Create a new Excel row writer.
      *
-     * @param output The output stream to write to.
+     * @param output    The output stream to write to.
      * @param sheetName The name of the sheet to write to.
      */
-    public ExcelRowWriter(OutputStream output, String sheetName)
-    {
+    public ExcelRowWriter(OutputStream output, String sheetName) {
         this(output, false, sheetName);
     }
 
     /**
      * Create a new Excel row writer.
      *
-     * @param output The output stream to write to.
+     * @param output       The output stream to write to.
      * @param legacyFormat Whether the legacy XLS format should be used.
-     * @param sheetName The name of the sheet to write to.
+     * @param sheetName    The name of the sheet to write to.
      */
-    public ExcelRowWriter(OutputStream output, boolean legacyFormat, String sheetName)
-    {
+    public ExcelRowWriter(OutputStream output, boolean legacyFormat, String sheetName) {
         this.output = output;
 
-        if (legacyFormat)
-        {
+        if (legacyFormat) {
             workbook = new HSSFWorkbook();
-        }
-        else
-        {
+        } else {
             workbook = new XSSFWorkbook();
         }
 
         // Create the first sheet.
-        if (sheetName == null)
-        {
+        if (sheetName == null) {
             sheetName = "Sheet 1";
         }
         createSheet(sheetName);
@@ -93,23 +84,19 @@ public class ExcelRowWriter implements RowWriter
      *
      * @param name The name of the sheet.
      */
-    public void createSheet(String name)
-    {
+    public void createSheet(String name) {
         sheet = workbook.createSheet(name);
         headersWritten = false;
         rowIndex = 0;
     }
 
     @Override
-    public void write(Row row) throws IOException
-    {
-        if (!headersWritten)
-        {
+    public void write(Row row) throws IOException {
+        if (!headersWritten) {
             org.apache.poi.ss.usermodel.Row workbookRow = sheet.createRow(rowIndex++);
             Column[] columns = row.columns();
 
-            for (int column = 0; column < columns.length; ++column)
-            {
+            for (int column = 0; column < columns.length; ++column) {
                 Cell workbookCell = workbookRow.createCell(column);
                 workbookCell.setCellType(CellType.STRING);
                 workbookCell.setCellValue(columns[column].name);
@@ -121,32 +108,22 @@ public class ExcelRowWriter implements RowWriter
         org.apache.poi.ss.usermodel.Row workbookRow = sheet.createRow(rowIndex++);
 
         int column = 0;
-        for (Row.Cell cell : row)
-        {
+        for (Row.Cell cell : row) {
             Variant value = cell.value;
             Cell workbookCell = workbookRow.createCell(column);
 
-            if (value.isNone())
-            {
+            if (value.isNone()) {
                 workbookCell.setCellType(CellType.BLANK);
-            }
-            else if (value.getInteger().isPresent())
-            {
+            } else if (value.getInteger().isPresent()) {
                 workbookCell.setCellType(CellType.NUMERIC);
                 workbookCell.setCellValue(value.getInteger().get());
-            }
-            else if (value.getFloat().isPresent())
-            {
+            } else if (value.getFloat().isPresent()) {
                 workbookCell.setCellType(CellType.NUMERIC);
                 workbookCell.setCellValue(value.getFloat().get());
-            }
-            else if (value.getBoolean().isPresent())
-            {
+            } else if (value.getBoolean().isPresent()) {
                 workbookCell.setCellType(CellType.BOOLEAN);
                 workbookCell.setCellValue(value.getBoolean().get());
-            }
-            else
-            {
+            } else {
                 workbookCell.setCellType(CellType.STRING);
                 workbookCell.setCellValue(value.toString());
             }
@@ -156,8 +133,7 @@ public class ExcelRowWriter implements RowWriter
     }
 
     @Override
-    public void close() throws IOException
-    {
+    public void close() throws IOException {
         workbook.write(output);
         workbook.close();
     }

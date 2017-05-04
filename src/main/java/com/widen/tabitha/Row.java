@@ -8,8 +8,7 @@ import java.util.function.Function;
 /**
  * Stores a single row of data values, indexed by column.
  */
-public class Row implements Iterable<Row.Cell>
-{
+public class Row implements Iterable<Row.Cell> {
     private final Row.Cell[] cells;
 
     /**
@@ -18,12 +17,10 @@ public class Row implements Iterable<Row.Cell>
      * @param rows The rows to merge.
      * @return The merged row.
      */
-    public static Row merge(Row... rows)
-    {
+    public static Row merge(Row... rows) {
         List<Cell> cells = new ArrayList<>();
 
-        for (int i = 0; i < rows.length; ++i)
-        {
+        for (int i = 0; i < rows.length; ++i) {
             cells.addAll(Arrays.asList(rows[i].cells));
         }
 
@@ -35,8 +32,7 @@ public class Row implements Iterable<Row.Cell>
      *
      * @param cells The cells to contain.
      */
-    Row(Cell... cells)
-    {
+    Row(Cell... cells) {
         this.cells = cells;
     }
 
@@ -45,8 +41,7 @@ public class Row implements Iterable<Row.Cell>
      *
      * @return The number of values in the row.
      */
-    public int size()
-    {
+    public int size() {
         return cells.length;
     }
 
@@ -56,12 +51,9 @@ public class Row implements Iterable<Row.Cell>
      * @param name The name of the column.
      * @return The value for the given column, if present.
      */
-    public Optional<Variant> get(String name)
-    {
-        for (Cell cell : cells)
-        {
-            if (cell.column.name.equals(name))
-            {
+    public Optional<Variant> get(String name) {
+        for (Cell cell : cells) {
+            if (cell.column.name.equals(name)) {
                 return Optional.of(cell.value);
             }
         }
@@ -75,10 +67,8 @@ public class Row implements Iterable<Row.Cell>
      * @param index The index of the column.
      * @return The value for the given column, if present.
      */
-    public Optional<Variant> get(int index)
-    {
-        if (index >= cells.length)
-        {
+    public Optional<Variant> get(int index) {
+        if (index >= cells.length) {
             return Optional.empty();
         }
 
@@ -90,8 +80,7 @@ public class Row implements Iterable<Row.Cell>
      *
      * @return Array of columns.
      */
-    public Column[] columns()
-    {
+    public Column[] columns() {
         return Utils.mapArray(cells, Column.class, cell -> cell.column);
     }
 
@@ -100,8 +89,7 @@ public class Row implements Iterable<Row.Cell>
      *
      * @return Array of values.
      */
-    public Variant[] values()
-    {
+    public Variant[] values() {
         return Utils.mapArray(cells, Variant.class, cell -> cell.value);
     }
 
@@ -111,12 +99,10 @@ public class Row implements Iterable<Row.Cell>
      * @param mapper A function to apply to each cell value.
      * @return The new row.
      */
-    public Row map(Function<Variant, Variant> mapper)
-    {
+    public Row map(Function<Variant, Variant> mapper) {
         Cell[] mapped = new Cell[cells.length];
 
-        for (int i = 0; i < mapped.length; ++i)
-        {
+        for (int i = 0; i < mapped.length; ++i) {
             mapped[i] = new Cell(cells[i].column, mapper.apply(cells[i].value));
         }
 
@@ -129,15 +115,12 @@ public class Row implements Iterable<Row.Cell>
      * @param columns The names of columns to keep.
      * @return The new row.
      */
-    public Row select(String... columns)
-    {
+    public Row select(String... columns) {
         List<String> columnsToRetain = Arrays.asList(columns);
         ArrayList<Cell> cells = new ArrayList<>();
 
-        for (Cell cell : this)
-        {
-            if (columnsToRetain.contains(cell.column.name))
-            {
+        for (Cell cell : this) {
+            if (columnsToRetain.contains(cell.column.name)) {
                 cells.add(cell);
             }
         }
@@ -149,13 +132,11 @@ public class Row implements Iterable<Row.Cell>
      * Get a new row that contains the values for only columns in the given range.
      *
      * @param start The start index, inclusive.
-     * @param end The ending index, exclusive.
+     * @param end   The ending index, exclusive.
      * @return The new row.
      */
-    public Row range(int start, int end)
-    {
-        if (start < 0 || end > cells.length)
-        {
+    public Row range(int start, int end) {
+        if (start < 0 || end > cells.length) {
             throw new IndexOutOfBoundsException();
         }
 
@@ -163,16 +144,14 @@ public class Row implements Iterable<Row.Cell>
     }
 
     @Override
-    public Iterator<Cell> iterator()
-    {
+    public Iterator<Cell> iterator() {
         return new ArrayIterator<>(cells);
     }
 
     /**
      * A single cell from a row containing a value.
      */
-    public static final class Cell
-    {
+    public static final class Cell {
         /**
          * The column the cell belongs to.
          */
@@ -187,12 +166,10 @@ public class Row implements Iterable<Row.Cell>
          * Create a new cell.
          *
          * @param column The cell column.
-         * @param value The cell value.
+         * @param value  The cell value.
          */
-        Cell(Column column, Variant value)
-        {
-            if (column == null || value == null)
-            {
+        Cell(Column column, Variant value) {
+            if (column == null || value == null) {
                 throw new NullPointerException();
             }
 

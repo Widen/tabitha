@@ -7,8 +7,7 @@ import java.util.*;
  */
 // Custom implementation, because none of the collections out there had the memory and performance optimizations that
 // I knew would give the best results for DataFrame.
-public class RingBuffer<E> extends AbstractCollection<E> implements Collection<E>
-{
+public class RingBuffer<E> extends AbstractCollection<E> implements Collection<E> {
     private static final int DEFAULT_INITIAL_CAPACITY = 32;
 
     private Object[] buffer;
@@ -18,8 +17,7 @@ public class RingBuffer<E> extends AbstractCollection<E> implements Collection<E
     /**
      * Create a new empty ring buffer with the default capacity.
      */
-    public RingBuffer()
-    {
+    public RingBuffer() {
         this(DEFAULT_INITIAL_CAPACITY);
     }
 
@@ -28,8 +26,7 @@ public class RingBuffer<E> extends AbstractCollection<E> implements Collection<E
      *
      * @param initialCapacity The initial memory capacity of the buffer.
      */
-    public RingBuffer(int initialCapacity)
-    {
+    public RingBuffer(int initialCapacity) {
         buffer = new Object[initialCapacity];
         head = 0;
         size = 0;
@@ -40,16 +37,14 @@ public class RingBuffer<E> extends AbstractCollection<E> implements Collection<E
      *
      * @param elements An array of elements to create a buffer from.
      */
-    public RingBuffer(E[] elements)
-    {
+    public RingBuffer(E[] elements) {
         buffer = elements;
         head = 0;
         size = elements.length;
     }
 
     @Override
-    public int size()
-    {
+    public int size() {
         return size;
     }
 
@@ -58,8 +53,7 @@ public class RingBuffer<E> extends AbstractCollection<E> implements Collection<E
      *
      * @return The buffer capacity.
      */
-    public int capacity()
-    {
+    public int capacity() {
         return buffer.length;
     }
 
@@ -69,10 +63,8 @@ public class RingBuffer<E> extends AbstractCollection<E> implements Collection<E
      * @param index The element index.
      * @return The element, or empty if the index does not exist.
      */
-    public Optional<E> get(int index)
-    {
-        if (index >= size || index < 0)
-        {
+    public Optional<E> get(int index) {
+        if (index >= size || index < 0) {
             return Optional.empty();
         }
 
@@ -85,22 +77,17 @@ public class RingBuffer<E> extends AbstractCollection<E> implements Collection<E
      * @param index The element index.
      * @return True if the element was removed.
      */
-    public boolean remove(int index)
-    {
-        if (index >= size || index < 0)
-        {
+    public boolean remove(int index) {
+        if (index >= size || index < 0) {
             return false;
         }
 
         int offset = wrappingOffset(index);
 
-        if (offset < head)
-        {
+        if (offset < head) {
             int tail = wrappingOffset(size - 1);
             System.arraycopy(buffer, offset + 1, buffer, offset, tail - offset);
-        }
-        else
-        {
+        } else {
             System.arraycopy(buffer, head, buffer, head + 1, index + 1);
             --head;
         }
@@ -114,10 +101,8 @@ public class RingBuffer<E> extends AbstractCollection<E> implements Collection<E
      *
      * @return The element, or empty if the buffer is empty.
      */
-    public Optional<E> front()
-    {
-        if (size == 0)
-        {
+    public Optional<E> front() {
+        if (size == 0) {
             return Optional.empty();
         }
 
@@ -131,10 +116,8 @@ public class RingBuffer<E> extends AbstractCollection<E> implements Collection<E
      *
      * @return The element, or empty if the buffer is empty.
      */
-    public Optional<E> back()
-    {
-        if (size == 0)
-        {
+    public Optional<E> back() {
+        if (size == 0) {
             return Optional.empty();
         }
 
@@ -149,12 +132,10 @@ public class RingBuffer<E> extends AbstractCollection<E> implements Collection<E
      *
      * @param element The element to push.
      */
-    public void pushFront(E element)
-    {
+    public void pushFront(E element) {
         Objects.requireNonNull(element);
 
-        if (size == buffer.length)
-        {
+        if (size == buffer.length) {
             resize(buffer.length * 2);
         }
 
@@ -168,12 +149,10 @@ public class RingBuffer<E> extends AbstractCollection<E> implements Collection<E
      *
      * @param element The element to push.
      */
-    public void pushBack(E element)
-    {
+    public void pushBack(E element) {
         Objects.requireNonNull(element);
 
-        if (size == buffer.length)
-        {
+        if (size == buffer.length) {
             resize(buffer.length * 2);
         }
 
@@ -186,10 +165,8 @@ public class RingBuffer<E> extends AbstractCollection<E> implements Collection<E
      *
      * @return The element, or empty if the buffer is empty.
      */
-    public Optional<E> popFront()
-    {
-        if (size == 0)
-        {
+    public Optional<E> popFront() {
+        if (size == 0) {
             return Optional.empty();
         }
 
@@ -206,10 +183,8 @@ public class RingBuffer<E> extends AbstractCollection<E> implements Collection<E
      *
      * @return The element, or empty if the buffer is empty.
      */
-    public Optional<E> popBack()
-    {
-        if (size == 0)
-        {
+    public Optional<E> popBack() {
+        if (size == 0) {
             return Optional.empty();
         }
 
@@ -222,43 +197,36 @@ public class RingBuffer<E> extends AbstractCollection<E> implements Collection<E
     }
 
     @Override
-    public void clear()
-    {
-        while (size > 0)
-        {
+    public void clear() {
+        while (size > 0) {
             buffer[wrappingOffset(size - 1)] = null;
             --size;
         }
     }
 
     @Override
-    public Object[] toArray()
-    {
+    public Object[] toArray() {
         Object[] dest = new Object[size];
         return toArray(dest);
     }
 
     @Override
-    public <T> T[] toArray(T[] array)
-    {
+    public <T> T[] toArray(T[] array) {
         Object[] dest = array;
 
         // If the given array is not large enough, allocate a new one.
-        if (dest.length < size)
-        {
+        if (dest.length < size) {
             dest = new Object[size];
         }
 
         // Current buffer is wrapped, copy head segment first and then the tail segment.
-        if (head + size > buffer.length)
-        {
+        if (head + size > buffer.length) {
             int headSize = buffer.length - head;
             System.arraycopy(buffer, head, dest, 0, headSize);
             System.arraycopy(buffer, 0, dest, headSize, size - headSize);
         }
         // Buffer is contiguous, copy in one step.
-        else
-        {
+        else {
             System.arraycopy(buffer, head, dest, 0, size);
         }
 
@@ -266,22 +234,18 @@ public class RingBuffer<E> extends AbstractCollection<E> implements Collection<E
     }
 
     @Override
-    public Iterator<E> iterator()
-    {
-        return new Iterator<E>()
-        {
+    public Iterator<E> iterator() {
+        return new Iterator<E>() {
             private int nextIndex = 0;
             private int lastIndex = -1;
 
             @Override
-            public boolean hasNext()
-            {
+            public boolean hasNext() {
                 return nextIndex < size;
             }
 
             @Override
-            public E next()
-            {
+            public E next() {
                 lastIndex = nextIndex;
                 ++nextIndex;
 
@@ -289,15 +253,12 @@ public class RingBuffer<E> extends AbstractCollection<E> implements Collection<E
             }
 
             @Override
-            public void remove()
-            {
-                if (lastIndex < 0)
-                {
+            public void remove() {
+                if (lastIndex < 0) {
                     throw new IllegalStateException();
                 }
 
-                if (!RingBuffer.this.remove(lastIndex))
-                {
+                if (!RingBuffer.this.remove(lastIndex)) {
                     throw new IllegalStateException();
                 }
 
@@ -307,33 +268,26 @@ public class RingBuffer<E> extends AbstractCollection<E> implements Collection<E
         };
     }
 
-    private int wrappingOffset(int index)
-    {
+    private int wrappingOffset(int index) {
         int offset = head + index;
 
-        if (offset >= buffer.length)
-        {
+        if (offset >= buffer.length) {
             offset -= buffer.length;
-        }
-        else if (offset < 0)
-        {
+        } else if (offset < 0) {
             offset += buffer.length;
         }
 
         return offset;
     }
 
-    private E getAtOffset(int offset)
-    {
+    private E getAtOffset(int offset) {
         @SuppressWarnings("unchecked")
         E element = (E) buffer[offset];
         return element;
     }
 
-    private void resize(int capacity)
-    {
-        if (capacity > buffer.length)
-        {
+    private void resize(int capacity) {
+        if (capacity > buffer.length) {
             // Create a new array with double the current capacity.
             Object[] dest = new Object[capacity];
 

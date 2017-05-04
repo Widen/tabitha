@@ -8,8 +8,7 @@ import java.util.function.Consumer;
 /**
  * Defines a list of columns. Used to create rows that follow the schema.
  */
-public class Schema implements Iterable<Column>
-{
+public class Schema implements Iterable<Column> {
     // Ordered list of columns.
     private Column[] columnsByIndex;
 
@@ -18,23 +17,19 @@ public class Schema implements Iterable<Column>
 
     /**
      * Create a new column index that combines all the columns in the given indexes.
-     *
+     * <p>
      * Columns are ordered from left to right the order of the indexes given.
      *
      * @param schemas The schemas to merge.
      * @return The merged schema.
      * @throws DuplicateColumnException if duplicate column names are found.
      */
-    public static Schema merge(Schema... schemas)
-    {
+    public static Schema merge(Schema... schemas) {
         Builder builder = new Builder();
 
-        for (Schema schema : schemas)
-        {
-            if (schema != null)
-            {
-                for (Column column : schema)
-                {
+        for (Schema schema : schemas) {
+            if (schema != null) {
+                for (Column column : schema) {
                     builder.add(column.name);
                 }
             }
@@ -48,8 +43,7 @@ public class Schema implements Iterable<Column>
      *
      * @return A schema builder.
      */
-    public static Builder builder()
-    {
+    public static Builder builder() {
         return new Builder();
     }
 
@@ -58,13 +52,11 @@ public class Schema implements Iterable<Column>
      *
      * @param columns The column names.
      */
-    public Schema(String... columns)
-    {
+    public Schema(String... columns) {
         columnsByIndex = new Column[columns.length];
         columnsByName = new HashMap<>();
 
-        for (int i = 0; i < columns.length; ++i)
-        {
+        for (int i = 0; i < columns.length; ++i) {
             columnsByIndex[i] = new Column(columns[i]);
             columnsByName.put(columns[i], i);
         }
@@ -76,8 +68,7 @@ public class Schema implements Iterable<Column>
      * @param values Values to put in the row, in column order.
      * @return A new row.
      */
-    public Row createRow(Variant... values)
-    {
+    public Row createRow(Variant... values) {
         return createRow(Arrays.asList(values));
     }
 
@@ -87,14 +78,12 @@ public class Schema implements Iterable<Column>
      * @param values Values to put in the row, in column order.
      * @return A new row.
      */
-    public Row createRow(Collection<Variant> values)
-    {
+    public Row createRow(Collection<Variant> values) {
         int count = Math.min(values.size(), size());
         Row.Cell[] cells = new Row.Cell[count];
 
         int column = 0;
-        for (Variant value : values)
-        {
+        for (Variant value : values) {
             cells[column] = new Row.Cell(columnsByIndex[column], value);
             ++column;
         }
@@ -108,8 +97,7 @@ public class Schema implements Iterable<Column>
      * @param builderFunction A function that sets fields using a builder.
      * @return A new row.
      */
-    public Row createRow(Consumer<RowBuilder> builderFunction)
-    {
+    public Row createRow(Consumer<RowBuilder> builderFunction) {
         RowBuilder builder = rowBuilder();
         builderFunction.accept(builder);
 
@@ -121,8 +109,7 @@ public class Schema implements Iterable<Column>
      *
      * @return A new row builder.
      */
-    public RowBuilder rowBuilder()
-    {
+    public RowBuilder rowBuilder() {
         return new RowBuilder(this, size());
     }
 
@@ -131,8 +118,7 @@ public class Schema implements Iterable<Column>
      *
      * @return The number of columns.
      */
-    public int size()
-    {
+    public int size() {
         return columnsByIndex.length;
     }
 
@@ -142,10 +128,8 @@ public class Schema implements Iterable<Column>
      * @param index The column index.
      * @return The column if the index is valid.
      */
-    public Optional<Column> getColumn(int index)
-    {
-        if (index >= 0 && index < columnsByIndex.length)
-        {
+    public Optional<Column> getColumn(int index) {
+        if (index >= 0 && index < columnsByIndex.length) {
             return Optional.of(columnsByIndex[index]);
         }
 
@@ -158,12 +142,10 @@ public class Schema implements Iterable<Column>
      * @param name The column name.
      * @return The column if it exists.
      */
-    public Optional<Column> getColumn(String name)
-    {
+    public Optional<Column> getColumn(String name) {
         Integer index = columnsByName.get(name);
 
-        if (index != null)
-        {
+        if (index != null) {
             return Optional.of(columnsByIndex[index]);
         }
 
@@ -171,23 +153,20 @@ public class Schema implements Iterable<Column>
     }
 
     @Override
-    public Iterator<Column> iterator()
-    {
+    public Iterator<Column> iterator() {
         return new ArrayIterator<>(columnsByIndex);
     }
 
     /**
      * Creates schemas incrementally.
      */
-    public static class Builder
-    {
+    public static class Builder {
         private List<String> columns;
 
         /**
          * Create a new empty schema builder.
          */
-        public Builder()
-        {
+        public Builder() {
             columns = new ArrayList<>();
         }
 
@@ -198,10 +177,8 @@ public class Schema implements Iterable<Column>
          * @return The builder.
          * @throws DuplicateColumnException if duplicate column names are found.
          */
-        public Builder add(String name)
-        {
-            if (columns.contains(name))
-            {
+        public Builder add(String name) {
+            if (columns.contains(name)) {
                 throw new DuplicateColumnException(name);
             }
 
@@ -215,8 +192,7 @@ public class Schema implements Iterable<Column>
          *
          * @return The new schema.
          */
-        public Schema build()
-        {
+        public Schema build() {
             return new Schema(columns.toArray(new String[columns.size()]));
         }
     }
@@ -224,13 +200,11 @@ public class Schema implements Iterable<Column>
     /**
      * Creates rows following a schema incrementally.
      */
-    public static class RowBuilder
-    {
+    public static class RowBuilder {
         private final Schema schema;
         private final Row.Cell[] cells;
 
-        private RowBuilder(Schema schema, int size)
-        {
+        private RowBuilder(Schema schema, int size) {
             this.schema = schema;
             this.cells = new Row.Cell[size];
         }
@@ -239,14 +213,12 @@ public class Schema implements Iterable<Column>
          * Set the value of a column.
          *
          * @param columnName The name of the column to set.
-         * @param value The column value.
+         * @param value      The column value.
          */
-        public void set(String columnName, Variant value)
-        {
+        public void set(String columnName, Variant value) {
             Integer index = schema.columnsByName.get(columnName);
 
-            if (index == null)
-            {
+            if (index == null) {
                 throw new IllegalArgumentException();
             }
 
@@ -257,12 +229,10 @@ public class Schema implements Iterable<Column>
          * Set the value of a column.
          *
          * @param columnIndex The index of the column to set.
-         * @param value The column value.
+         * @param value       The column value.
          */
-        public void set(int columnIndex, Variant value)
-        {
-            if (columnIndex < 0 || columnIndex >= schema.columnsByIndex.length)
-            {
+        public void set(int columnIndex, Variant value) {
+            if (columnIndex < 0 || columnIndex >= schema.columnsByIndex.length) {
                 throw new IndexOutOfBoundsException();
             }
 
@@ -274,8 +244,7 @@ public class Schema implements Iterable<Column>
          *
          * @return The new row.
          */
-        public Row build()
-        {
+        public Row build() {
             Row.Cell[] copy = new Row.Cell[cells.length];
             System.arraycopy(cells, 0, copy, 0, cells.length);
 
@@ -286,10 +255,8 @@ public class Schema implements Iterable<Column>
     /**
      * Exception thrown when duplicate column names are attempted to be added to a schema.
      */
-    public static class DuplicateColumnException extends RuntimeException
-    {
-        public DuplicateColumnException(String column)
-        {
+    public static class DuplicateColumnException extends RuntimeException {
+        public DuplicateColumnException(String column) {
             super("The column '" + column + "' already exists.");
         }
     }

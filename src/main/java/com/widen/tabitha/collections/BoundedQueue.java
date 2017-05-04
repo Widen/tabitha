@@ -13,8 +13,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * <p>
  * This queue uses internal synchronization and is fully thread-safe.
  */
-public class BoundedQueue<T> implements Closeable
-{
+public class BoundedQueue<T> implements Closeable {
     private final CircularFifoQueue<T> queue;
     private final AtomicBoolean closed;
     private final Lock lock;
@@ -26,8 +25,7 @@ public class BoundedQueue<T> implements Closeable
      *
      * @param capacity The queue capacity.
      */
-    public BoundedQueue(int capacity)
-    {
+    public BoundedQueue(int capacity) {
         queue = new CircularFifoQueue<>(capacity);
         closed = new AtomicBoolean();
         lock = new ReentrantLock();
@@ -40,8 +38,7 @@ public class BoundedQueue<T> implements Closeable
      *
      * @return True if {@link #close} has been called.
      */
-    public boolean isClosed()
-    {
+    public boolean isClosed() {
         return closed.get();
     }
 
@@ -53,23 +50,18 @@ public class BoundedQueue<T> implements Closeable
      * @param item The item to enqueue.
      * @return True if the item was added, false if the queue is closed.
      */
-    public boolean enqueue(T item)
-    {
-        if (isClosed())
-        {
+    public boolean enqueue(T item) {
+        if (isClosed()) {
             return false;
         }
 
         lock.lock();
 
-        try
-        {
-            while (queue.isAtFullCapacity())
-            {
+        try {
+            while (queue.isAtFullCapacity()) {
                 canEnqueue.awaitUninterruptibly();
 
-                if (isClosed())
-                {
+                if (isClosed()) {
                     return false;
                 }
             }
@@ -77,9 +69,7 @@ public class BoundedQueue<T> implements Closeable
             queue.add(item);
             canDequeue.signal();
             return true;
-        }
-        finally
-        {
+        } finally {
             lock.unlock();
         }
     }
@@ -91,16 +81,12 @@ public class BoundedQueue<T> implements Closeable
      *
      * @return The removed item, or null if the queue is empty and closed.
      */
-    public T dequeue()
-    {
+    public T dequeue() {
         lock.lock();
 
-        try
-        {
-            while (queue.isEmpty())
-            {
-                if (isClosed())
-                {
+        try {
+            while (queue.isEmpty()) {
+                if (isClosed()) {
                     return null;
                 }
 
@@ -109,10 +95,9 @@ public class BoundedQueue<T> implements Closeable
 
             T item = queue.remove();
             canEnqueue.signal();
+
             return item;
-        }
-        finally
-        {
+        } finally {
             lock.unlock();
         }
     }
@@ -120,16 +105,12 @@ public class BoundedQueue<T> implements Closeable
     /**
      * Clear all items from the queue.
      */
-    public void clear()
-    {
+    public void clear() {
         lock.lock();
 
-        try
-        {
+        try {
             queue.clear();
-        }
-        finally
-        {
+        } finally {
             lock.unlock();
         }
     }
@@ -138,19 +119,14 @@ public class BoundedQueue<T> implements Closeable
      * Close the queue, preventing additional items from being added.
      */
     @Override
-    public void close()
-    {
-        if (!closed.getAndSet(true))
-        {
+    public void close() {
+        if (!closed.getAndSet(true)) {
             lock.lock();
 
-            try
-            {
+            try {
                 canEnqueue.signalAll();
                 canDequeue.signalAll();
-            }
-            finally
-            {
+            } finally {
                 lock.unlock();
             }
         }

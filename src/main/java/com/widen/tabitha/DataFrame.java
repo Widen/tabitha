@@ -19,8 +19,7 @@ import java.util.Optional;
  * contain different columns than each other and there is no way for a data frame to know all the possible columns it
  * may contain.
  */
-public class DataFrame implements Iterable<Row>, Closeable
-{
+public class DataFrame implements Iterable<Row>, Closeable {
     private final RingBuffer<Row> rows;
     private RowReader rowReader;
 
@@ -30,8 +29,7 @@ public class DataFrame implements Iterable<Row>, Closeable
      * @param rowReader The row reader used to stream in data.
      * @return A new data frame.
      */
-    public static DataFrame streaming(RowReader rowReader)
-    {
+    public static DataFrame streaming(RowReader rowReader) {
         DataFrame dataFrame = new DataFrame();
         dataFrame.rowReader = rowReader;
 
@@ -41,8 +39,7 @@ public class DataFrame implements Iterable<Row>, Closeable
     /**
      * Create a new in-memory data frame.
      */
-    public DataFrame()
-    {
+    public DataFrame() {
         rows = new RingBuffer<>();
         rowReader = null;
     }
@@ -52,8 +49,7 @@ public class DataFrame implements Iterable<Row>, Closeable
      *
      * @param rows The rows to put in the data frame.
      */
-    public DataFrame(Row... rows)
-    {
+    public DataFrame(Row... rows) {
         this.rows = new RingBuffer<>(rows);
         rowReader = null;
     }
@@ -63,8 +59,7 @@ public class DataFrame implements Iterable<Row>, Closeable
      *
      * @return True if this is a streaming data frame.
      */
-    public boolean isStreaming()
-    {
+    public boolean isStreaming() {
         return rowReader != null;
     }
 
@@ -73,8 +68,7 @@ public class DataFrame implements Iterable<Row>, Closeable
      *
      * @return True if the data frame contains no elements.
      */
-    public boolean isEmpty()
-    {
+    public boolean isEmpty() {
         return rows.isEmpty();
     }
 
@@ -83,8 +77,7 @@ public class DataFrame implements Iterable<Row>, Closeable
      *
      * @return The data frame size.
      */
-    public int size()
-    {
+    public int size() {
         return rows.size();
     }
 
@@ -96,25 +89,18 @@ public class DataFrame implements Iterable<Row>, Closeable
      * @param index The index of the row to get.
      * @return The row, or none if the index does not exist.
      */
-    public Optional<Row> get(int index)
-    {
-        if (isStreaming())
-        {
-            while (index >= size())
-            {
-                try
-                {
+    public Optional<Row> get(int index) {
+        if (isStreaming()) {
+            while (index >= size()) {
+                try {
                     Row row = rowReader.read().orElse(null);
 
-                    if (row == null)
-                    {
+                    if (row == null) {
                         break;
                     }
 
                     pushBack(row);
-                }
-                catch (IOException e)
-                {
+                } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
             }
@@ -128,8 +114,7 @@ public class DataFrame implements Iterable<Row>, Closeable
      *
      * @param row The row to push
      */
-    public void pushFront(Row row)
-    {
+    public void pushFront(Row row) {
         rows.pushFront(row);
     }
 
@@ -138,8 +123,7 @@ public class DataFrame implements Iterable<Row>, Closeable
      *
      * @param row The row to push
      */
-    public void pushBack(Row row)
-    {
+    public void pushBack(Row row) {
         rows.pushBack(row);
     }
 
@@ -150,16 +134,11 @@ public class DataFrame implements Iterable<Row>, Closeable
      *
      * @return The removed row, or none if the data frame is empty.
      */
-    public Optional<Row> popFront()
-    {
-        if (isEmpty() && isStreaming())
-        {
-            try
-            {
+    public Optional<Row> popFront() {
+        if (isEmpty() && isStreaming()) {
+            try {
                 return rowReader.read();
-            }
-            catch (IOException e)
-            {
+            } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
@@ -174,16 +153,11 @@ public class DataFrame implements Iterable<Row>, Closeable
      *
      * @return The removed row, or none if the data frame is empty.
      */
-    public Optional<Row> popBack()
-    {
-        if (isEmpty() && isStreaming())
-        {
-            try
-            {
+    public Optional<Row> popBack() {
+        if (isEmpty() && isStreaming()) {
+            try {
                 return rowReader.read();
-            }
-            catch (IOException e)
-            {
+            } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
@@ -196,8 +170,7 @@ public class DataFrame implements Iterable<Row>, Closeable
      *
      * @return The row reader.
      */
-    public RowReader reader()
-    {
+    public RowReader reader() {
         return RowReader.from(iterator());
     }
 
@@ -206,15 +179,13 @@ public class DataFrame implements Iterable<Row>, Closeable
      *
      * @return The row writer.
      */
-    public RowWriter writer()
-    {
+    public RowWriter writer() {
         // This creates a row writer using a method reference as the implementation for write().
         return this::pushBack;
     }
 
     @Override
-    public Iterator<Row> iterator()
-    {
+    public Iterator<Row> iterator() {
         return rows.iterator();
     }
 
@@ -227,10 +198,8 @@ public class DataFrame implements Iterable<Row>, Closeable
      * @throws IOException Thrown if an I/O error occurs.
      */
     @Override
-    public void close() throws IOException
-    {
-        if (rowReader != null)
-        {
+    public void close() throws IOException {
+        if (rowReader != null) {
             rowReader.close();
             rowReader = null;
         }

@@ -19,42 +19,34 @@ import java.util.Optional;
 /**
  * Reads rows from an Excel workbook.
  */
-public class ExcelRowReader implements RowReader
-{
+public class ExcelRowReader implements RowReader {
     private Workbook workbook;
     private Schema schema;
     private int rowIndex = 0;
 
-    public ExcelRowReader(File file) throws InvalidFormatException, IOException
-    {
+    public ExcelRowReader(File file) throws InvalidFormatException, IOException {
         this(WorkbookFactory.create(file));
     }
 
-    public ExcelRowReader(InputStream inputStream) throws InvalidFormatException, IOException
-    {
+    public ExcelRowReader(InputStream inputStream) throws InvalidFormatException, IOException {
         this(WorkbookFactory.create(inputStream));
     }
 
-    public ExcelRowReader(Workbook workbook)
-    {
+    public ExcelRowReader(Workbook workbook) {
         this.workbook = workbook;
     }
 
     @Override
-    public Optional<Row> read() throws IOException
-    {
-        if (schema == null)
-        {
+    public Optional<Row> read() throws IOException {
+        if (schema == null) {
             readHeader();
         }
 
         org.apache.poi.ss.usermodel.Row row = nextRow();
 
-        if (row != null)
-        {
+        if (row != null) {
             Variant[] values = new Variant[row.getLastCellNum()];
-            for (int i = 0; i < row.getLastCellNum(); ++i)
-            {
+            for (int i = 0; i < row.getLastCellNum(); ++i) {
                 values[i] = getCellValue(row.getCell(i));
             }
 
@@ -64,16 +56,13 @@ public class ExcelRowReader implements RowReader
         return Optional.empty();
     }
 
-    private void readHeader()
-    {
+    private void readHeader() {
         org.apache.poi.ss.usermodel.Row row = nextRow();
 
-        if (row != null)
-        {
+        if (row != null) {
             Schema.Builder builder = new Schema.Builder();
 
-            for (int i = 0; i < row.getLastCellNum(); ++i)
-            {
+            for (int i = 0; i < row.getLastCellNum(); ++i) {
                 builder.add(getCellValue(row.getCell(i)).toString());
             }
 
@@ -81,12 +70,10 @@ public class ExcelRowReader implements RowReader
         }
     }
 
-    private org.apache.poi.ss.usermodel.Row nextRow()
-    {
+    private org.apache.poi.ss.usermodel.Row nextRow() {
         Sheet sheet = workbook.getSheetAt(0);
 
-        if (rowIndex > sheet.getLastRowNum())
-        {
+        if (rowIndex > sheet.getLastRowNum()) {
             return null;
         }
 
@@ -96,26 +83,21 @@ public class ExcelRowReader implements RowReader
         return row;
     }
 
-    private Variant getCellValue(Cell cell)
-    {
-        if (cell == null)
-        {
+    private Variant getCellValue(Cell cell) {
+        if (cell == null) {
             return Variant.NONE;
         }
 
-        switch (cell.getCellTypeEnum())
-        {
+        switch (cell.getCellTypeEnum()) {
             case STRING:
                 String string = cell.getRichStringCellValue().getString();
-                if (StringUtils.isNotBlank(string))
-                {
+                if (StringUtils.isNotBlank(string)) {
                     return new Variant.String(string);
                 }
                 return Variant.NONE;
 
             case NUMERIC:
-                if (DateUtil.isCellDateFormatted(cell))
-                {
+                if (DateUtil.isCellDateFormatted(cell)) {
                     Date dateVal = cell.getDateCellValue();
                     return new Variant.String(new SimpleDateFormat().format(dateVal));
                 }

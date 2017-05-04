@@ -14,18 +14,15 @@ import java.util.Optional;
 /**
  * Reads a delimiter-separated text file into rows of values.
  */
-public class DelimitedRowReader implements RowReader
-{
+public class DelimitedRowReader implements RowReader {
     private CSVReader reader;
     private Schema schema;
 
-    public DelimitedRowReader(InputStream inputStream, DelimitedTextFormat format)
-    {
+    public DelimitedRowReader(InputStream inputStream, DelimitedTextFormat format) {
         this(new InputStreamReader(inputStream, StandardCharsets.UTF_8), format);
     }
 
-    public DelimitedRowReader(Reader reader, DelimitedTextFormat format)
-    {
+    public DelimitedRowReader(Reader reader, DelimitedTextFormat format) {
         this.reader = new CSVReader(
             reader,
             format.getDelimiter(),
@@ -37,16 +34,13 @@ public class DelimitedRowReader implements RowReader
     }
 
     @Override
-    public Optional<Row> read() throws IOException
-    {
-        if (schema == null)
-        {
+    public Optional<Row> read() throws IOException {
+        if (schema == null) {
             readHeaders();
         }
 
         String[] columns = reader.readNext();
-        if (columns == null)
-        {
+        if (columns == null) {
             return Optional.empty();
         }
 
@@ -55,23 +49,19 @@ public class DelimitedRowReader implements RowReader
         return Optional.of(schema.createRow(values));
     }
 
-    private void readHeaders() throws IOException
-    {
+    private void readHeaders() throws IOException {
         String[] columns = reader.readNext();
         Schema.Builder builder = new Schema.Builder();
 
-        for (String column : columns)
-        {
+        for (String column : columns) {
             builder.add(column);
         }
 
         schema = builder.build();
     }
 
-    private Variant asVariant(String value)
-    {
-        if (StringUtils.isNotBlank(value))
-        {
+    private Variant asVariant(String value) {
+        if (StringUtils.isNotBlank(value)) {
             return new Variant.String(value);
         }
 

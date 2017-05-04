@@ -12,11 +12,10 @@ import java.util.stream.Stream;
  * Reads data rows from a data source.
  */
 @FunctionalInterface
-public interface RowReader extends Iterable<Row>, Closeable
-{
+public interface RowReader extends Iterable<Row>, Closeable {
     /**
      * A row reader that produces no rows.
-     *
+     * <p>
      * Closing has no effect on this row reader and is always re-usable.
      */
     RowReader VOID = Optional::empty;
@@ -27,17 +26,13 @@ public interface RowReader extends Iterable<Row>, Closeable
      * @param rows Rows to create from.
      * @return The new reader.
      */
-    static RowReader from(Row... rows)
-    {
-        return new RowReader()
-        {
+    static RowReader from(Row... rows) {
+        return new RowReader() {
             private int index = 0;
 
             @Override
-            public Optional<Row> read() throws IOException
-            {
-                if (index < rows.length)
-                {
+            public Optional<Row> read() throws IOException {
+                if (index < rows.length) {
                     return Optional.of(rows[index++]);
                 }
 
@@ -48,19 +43,17 @@ public interface RowReader extends Iterable<Row>, Closeable
 
     /**
      * Create a row reader from an iterator.
-     *
+     * <p>
      * Calling {@link #read} on the returned row reader will advance the iterator if more items remain, or return empty
      * when the end of the iterator is reached.
      *
      * @param iterator Iterator to create from.
      * @return The new reader.
      */
-    static RowReader from(Iterator<Row> iterator)
-    {
+    static RowReader from(Iterator<Row> iterator) {
         return () ->
         {
-            if (iterator.hasNext())
-            {
+            if (iterator.hasNext()) {
                 return Optional.of(iterator.next());
             }
 
@@ -74,8 +67,7 @@ public interface RowReader extends Iterable<Row>, Closeable
      * @param iterable Iterable to create from.
      * @return The new reader.
      */
-    static RowReader from(Iterable<Row> iterable)
-    {
+    static RowReader from(Iterable<Row> iterable) {
         return from(iterable.iterator());
     }
 
@@ -85,8 +77,7 @@ public interface RowReader extends Iterable<Row>, Closeable
      * @param stream Stream to create from.
      * @return The new reader.
      */
-    static RowReader from(Stream<Row> stream)
-    {
+    static RowReader from(Stream<Row> stream) {
         return from(stream.iterator());
     }
 
@@ -96,21 +87,16 @@ public interface RowReader extends Iterable<Row>, Closeable
      * @param rowReaders The row readers to chain.
      * @return The chained reader.
      */
-    static RowReader chain(RowReader... rowReaders)
-    {
-        return new RowReader()
-        {
+    static RowReader chain(RowReader... rowReaders) {
+        return new RowReader() {
             private int index = 0;
 
             @Override
-            public Optional<Row> read() throws IOException
-            {
-                while (index < rowReaders.length)
-                {
+            public Optional<Row> read() throws IOException {
+                while (index < rowReaders.length) {
                     Optional<Row> row = rowReaders[index].read();
 
-                    if (row.isPresent())
-                    {
+                    if (row.isPresent()) {
                         return row;
                     }
 
@@ -121,10 +107,8 @@ public interface RowReader extends Iterable<Row>, Closeable
             }
 
             @Override
-            public void close() throws IOException
-            {
-                for (RowReader rowReader : rowReaders)
-                {
+            public void close() throws IOException {
+                for (RowReader rowReader : rowReaders) {
                     rowReader.close();
                 }
             }
@@ -137,47 +121,36 @@ public interface RowReader extends Iterable<Row>, Closeable
      * @param rowReaders Another row reader to join with.
      * @return The joined row reader.
      */
-    static RowReader zip(RowReader... rowReaders)
-    {
-        return new RowReader()
-        {
+    static RowReader zip(RowReader... rowReaders) {
+        return new RowReader() {
             private final Row[] rows = new Row[rowReaders.length];
             private boolean stillMore = true;
 
             @Override
-            public Optional<Row> read() throws IOException
-            {
-                if (!stillMore)
-                {
+            public Optional<Row> read() throws IOException {
+                if (!stillMore) {
                     return Optional.empty();
                 }
 
                 // Read one row from all readers.
                 stillMore = false;
-                for (int i = 0; i < rows.length; ++i)
-                {
+                for (int i = 0; i < rows.length; ++i) {
                     rows[i] = rowReaders[i].read().orElse(null);
-                    if (rows[i] != null)
-                    {
+                    if (rows[i] != null) {
                         stillMore = true;
                     }
                 }
 
-                if (stillMore)
-                {
+                if (stillMore) {
                     return Optional.of(Row.merge(rows));
-                }
-                else
-                {
+                } else {
                     return Optional.empty();
                 }
             }
 
             @Override
-            public void close() throws IOException
-            {
-                for (RowReader rowReader : rowReaders)
-                {
+            public void close() throws IOException {
+                for (RowReader rowReader : rowReaders) {
                     rowReader.close();
                 }
             }
@@ -187,8 +160,8 @@ public interface RowReader extends Iterable<Row>, Closeable
     /**
      * Attempt to read the next row.
      *
-     * @throws IOException Thrown if an I/O error occurs.
      * @return The next row if read, or an empty {@link Optional} if the end of the reader has been reached.
+     * @throws IOException Thrown if an I/O error occurs.
      */
     Optional<Row> read() throws IOException;
 
@@ -198,17 +171,12 @@ public interface RowReader extends Iterable<Row>, Closeable
      * @param predicate A predicate to apply to each row to determine if it should be included.
      * @return A filtered reader.
      */
-    default RowReader filter(Predicate<Row> predicate)
-    {
-        return new RowReader()
-        {
+    default RowReader filter(Predicate<Row> predicate) {
+        return new RowReader() {
             @Override
-            public Optional<Row> read() throws IOException
-            {
-                for (Row row : RowReader.this)
-                {
-                    if (predicate.test(row))
-                    {
+            public Optional<Row> read() throws IOException {
+                for (Row row : RowReader.this) {
+                    if (predicate.test(row)) {
                         return Optional.of(row);
                     }
                 }
@@ -217,8 +185,7 @@ public interface RowReader extends Iterable<Row>, Closeable
             }
 
             @Override
-            public void close() throws IOException
-            {
+            public void close() throws IOException {
                 RowReader.this.close();
             }
         };
@@ -228,12 +195,11 @@ public interface RowReader extends Iterable<Row>, Closeable
      * Filter rows returned based on the value of a given column. If the given column is not set for a row, that row is
      * filtered out.
      *
-     * @param column The column to filter by.
+     * @param column    The column to filter by.
      * @param predicate A predicate to apply to each value in the column to determine if the row should be included.
      * @return A filtered row reader.
      */
-    default RowReader filterBy(String column, Predicate<Variant> predicate)
-    {
+    default RowReader filterBy(String column, Predicate<Variant> predicate) {
         return filter(row -> row.get(column)
             .map(predicate::test)
             .orElse(false));
@@ -245,19 +211,15 @@ public interface RowReader extends Iterable<Row>, Closeable
      * @param mapper A function to apply to each row.
      * @return A mapped reader.
      */
-    default RowReader map(Function<Row, Row> mapper)
-    {
-        return new RowReader()
-        {
+    default RowReader map(Function<Row, Row> mapper) {
+        return new RowReader() {
             @Override
-            public Optional<Row> read() throws IOException
-            {
+            public Optional<Row> read() throws IOException {
                 return RowReader.this.read().map(mapper);
             }
 
             @Override
-            public void close() throws IOException
-            {
+            public void close() throws IOException {
                 RowReader.this.close();
             }
         };
@@ -269,8 +231,7 @@ public interface RowReader extends Iterable<Row>, Closeable
      * @param columns The names of columns to keep.
      * @return The new row reader.
      */
-    default RowReader select(String... columns)
-    {
+    default RowReader select(String... columns) {
         return map(row -> row.select(columns));
     }
 
@@ -278,11 +239,10 @@ public interface RowReader extends Iterable<Row>, Closeable
      * Get a new row reader that returns the values for only columns in the given range.
      *
      * @param start The start index, inclusive.
-     * @param end The ending index, exclusive.
+     * @param end   The ending index, exclusive.
      * @return The new row reader.
      */
-    default RowReader range(int start, int end)
-    {
+    default RowReader range(int start, int end) {
         return map(row -> row.range(start, end));
     }
 
@@ -292,17 +252,13 @@ public interface RowReader extends Iterable<Row>, Closeable
      * @param count The number of rows to skip.
      * @return The new row reader.
      */
-    default RowReader skip(int count)
-    {
-        return new RowReader()
-        {
+    default RowReader skip(int count) {
+        return new RowReader() {
             private int skipped = 0;
 
             @Override
-            public Optional<Row> read() throws IOException
-            {
-                while (skipped < count)
-                {
+            public Optional<Row> read() throws IOException {
+                while (skipped < count) {
                     RowReader.this.read();
                     ++skipped;
                 }
@@ -311,8 +267,7 @@ public interface RowReader extends Iterable<Row>, Closeable
             }
 
             @Override
-            public void close() throws IOException
-            {
+            public void close() throws IOException {
                 RowReader.this.close();
             }
         };
@@ -324,21 +279,16 @@ public interface RowReader extends Iterable<Row>, Closeable
      * @param count The maximum number of rows to read.
      * @return The new row reader.
      */
-    default RowReader take(int count)
-    {
-        return new RowReader()
-        {
+    default RowReader take(int count) {
+        return new RowReader() {
             private int index = 0;
 
             @Override
-            public Optional<Row> read() throws IOException
-            {
-                if (index < count)
-                {
+            public Optional<Row> read() throws IOException {
+                if (index < count) {
                     Optional<Row> row = RowReader.this.read();
 
-                    if (row.isPresent())
-                    {
+                    if (row.isPresent()) {
                         ++index;
                     }
 
@@ -349,8 +299,7 @@ public interface RowReader extends Iterable<Row>, Closeable
             }
 
             @Override
-            public void close() throws IOException
-            {
+            public void close() throws IOException {
                 RowReader.this.close();
             }
         };
@@ -362,32 +311,23 @@ public interface RowReader extends Iterable<Row>, Closeable
      * @param rowWriter A row writer to write all rows to.
      * @throws IOException Thrown if an I/O error occurs.
      */
-    default void pipe(RowWriter rowWriter) throws IOException
-    {
-        for (Row row : this)
-        {
+    default void pipe(RowWriter rowWriter) throws IOException {
+        for (Row row : this) {
             rowWriter.write(row);
         }
     }
 
     @Override
-    default Iterator<Row> iterator()
-    {
-        return new Iterator<Row>()
-        {
+    default Iterator<Row> iterator() {
+        return new Iterator<Row>() {
             private Row nextRow;
 
             @Override
-            public boolean hasNext()
-            {
-                if (nextRow == null)
-                {
-                    try
-                    {
+            public boolean hasNext() {
+                if (nextRow == null) {
+                    try {
                         nextRow = read().orElse(null);
-                    }
-                    catch (IOException e)
-                    {
+                    } catch (IOException e) {
                         return false;
                     }
                 }
@@ -396,16 +336,11 @@ public interface RowReader extends Iterable<Row>, Closeable
             }
 
             @Override
-            public Row next()
-            {
-                if (nextRow == null)
-                {
-                    try
-                    {
+            public Row next() {
+                if (nextRow == null) {
+                    try {
                         nextRow = read().orElse(null);
-                    }
-                    catch (IOException e)
-                    {
+                    } catch (IOException e) {
                         return null;
                     }
                 }
@@ -419,7 +354,6 @@ public interface RowReader extends Iterable<Row>, Closeable
 
     // Provide a default close method that does nothing.
     @Override
-    default void close() throws IOException
-    {
+    default void close() throws IOException {
     }
 }

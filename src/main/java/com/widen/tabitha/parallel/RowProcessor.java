@@ -6,11 +6,10 @@ import com.widen.tabitha.Row;
  * Processes a stream of rows.
  */
 @FunctionalInterface
-public interface RowProcessor
-{
+public interface RowProcessor {
     /**
      * Process a single row.
-     *
+     * <p>
      * This method is required to be thread-safe, as it may get called concurrently from multiple threads at once.
      *
      * @param row The row to process.
@@ -20,12 +19,12 @@ public interface RowProcessor
     /**
      * Method called when the processor begins processing a data set.
      */
-    default void onStart()
-    {}
+    default void onStart() {
+    }
 
     /**
      * Method called when the processor reaches the end of a data set.
      */
-    default void onComplete()
-    {}
+    default void onComplete() {
+    }
 }

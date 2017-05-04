@@ -3,8 +3,7 @@ package com.widen.tabitha;
 /**
  * A column in a schema.
  */
-public final class Column
-{
+public final class Column {
     /**
      * The name of the column.
      */
@@ -15,10 +14,8 @@ public final class Column
      *
      * @param name The column name.
      */
-    Column(String name)
-    {
-        if (name == null)
-        {
+    Column(String name) {
+        if (name == null) {
             throw new NullPointerException();
         }
 
@@ -26,8 +23,7 @@ public final class Column
     }
 
     @Override
-    public String toString()
-    {
+    public String toString() {
         return name;
     }
 }
