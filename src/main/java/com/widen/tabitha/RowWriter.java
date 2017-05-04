@@ -14,7 +14,37 @@ public interface RowWriter extends Closeable
      *
      * Closing has no effect on this row writer and is always re-usable.
      */
-    RowWriter NULL = row -> {};
+    RowWriter VOID = row -> {};
+
+    /**
+     * Creates a new row writer that writes rows to multiple destinations.
+     *
+     * @param rowWriters The writers to write to.
+     * @return The new row writer.
+     */
+    static RowWriter tee(RowWriter... rowWriters)
+    {
+        return new RowWriter()
+        {
+            @Override
+            public void write(Row row) throws IOException
+            {
+                for (RowWriter rowWriter : rowWriters)
+                {
+                    rowWriter.write(row);
+                }
+            }
+
+            @Override
+            public void close() throws IOException
+            {
+                for (RowWriter rowWriter : rowWriters)
+                {
+                    rowWriter.close();
+                }
+            }
+        };
+    }
 
     /**
      * Writes a row to the output.

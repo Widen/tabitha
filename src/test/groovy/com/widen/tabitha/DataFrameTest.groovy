@@ -6,7 +6,7 @@ class DataFrameTest extends Specification {
     def "test is streaming"() {
         setup:
         def inMemory = new DataFrame()
-        def streaming = DataFrame.streaming(RowReader.EMPTY)
+        def streaming = DataFrame.streaming(RowReader.VOID)
 
         expect:
         !inMemory.isStreaming()

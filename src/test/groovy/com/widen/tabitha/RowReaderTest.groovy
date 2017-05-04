@@ -5,7 +5,7 @@ import spock.lang.*
 class RowReaderTest extends Specification {
     def "empty reader"() {
         setup:
-        def reader = RowReader.EMPTY
+        def reader = RowReader.VOID
 
         expect:
         !reader.read().isPresent()

@@ -3,10 +3,10 @@ package com.widen.tabitha
 import spock.lang.*
 
 class RowWriterTest extends Specification {
-    def "null is always writable"() {
+    def "void is always writable"() {
         setup:
         100.times {
-            RowWriter.NULL.write(Mock(Row.class))
+            RowWriter.VOID.write(Mock(Row.class))
         }
     }
 }

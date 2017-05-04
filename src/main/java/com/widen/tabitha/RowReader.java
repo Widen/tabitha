@@ -19,7 +19,7 @@ public interface RowReader extends Iterable<Row>, Closeable
      *
      * Closing has no effect on this row reader and is always re-usable.
      */
-    RowReader EMPTY = Optional::empty;
+    RowReader VOID = Optional::empty;
 
     /**
      * Create a row reader from an array of rows.
