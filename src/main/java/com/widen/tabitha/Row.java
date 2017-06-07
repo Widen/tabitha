@@ -12,6 +12,20 @@ public class Row implements Iterable<Row.Cell> {
     private final Row.Cell[] cells;
 
     /**
+     * Create a copy of a row.
+     * <p>
+     * This is not a deep copy, as a deep copy is not necessary. Since cells are immutable, columns and values can be
+     * reused without copying. Setting a new value will lazily create a new cell instance.
+     *
+     * @param row The row to copy.
+     * @return A copy of the row.
+     */
+    public static Row copyOf(Row row)
+    {
+        return new Row(Arrays.copyOf(row.cells, row.cells.length));
+    }
+
+    /**
      * Create a new row that merges the columns and values of all the given rows.
      *
      * @param rows The rows to merge.
