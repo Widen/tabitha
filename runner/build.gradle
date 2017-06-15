@@ -1,4 +1,7 @@
-apply plugin: 'application'
+plugins {
+    id 'application'
+    id 'com.github.johnrengelman.shadow' version '2.0.0'
+}
 
 version '1.0.0'
 mainClassName = 'com.widen.tabitha.runner.Runner'
@@ -7,4 +10,8 @@ dependencies {
     compile project(':')
     compile 'commons-io:commons-io:2.5'
     compile 'org.codehaus.groovy:groovy-all:2.4.1'
+}
+
+shadowJar {
+    classifier = null
 }
