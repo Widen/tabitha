@@ -44,4 +44,10 @@ public class DelimitedRowWriter implements RowWriter {
 
         writer.writeNext(cells);
     }
+
+    @Override
+    public void close() throws IOException {
+        writer.flush();
+        writer.close();
+    }
 }

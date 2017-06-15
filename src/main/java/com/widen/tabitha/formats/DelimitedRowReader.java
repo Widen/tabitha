@@ -67,4 +67,9 @@ public class DelimitedRowReader implements RowReader {
 
         return Variant.NONE;
     }
+
+    @Override
+    public void close() throws IOException {
+        reader.close();
+    }
 }
