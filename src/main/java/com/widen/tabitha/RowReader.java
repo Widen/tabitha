@@ -226,6 +226,32 @@ public interface RowReader extends Iterable<Row>, Closeable {
     }
 
     /**
+     * Similar to {@link #map(Function)}, but maps rows to a new single type.
+     *
+     * @param <T> The type to transform rows into.
+     * @return An iterator over the transformed values.
+     */
+    default <T> Iterable<T> transform(Function<Row, T> transformer) {
+        final Iterator<Row> rowIterator = iterator();
+
+        return () -> new Iterator<T>() {
+            @Override
+            public boolean hasNext() {
+                return rowIterator.hasNext();
+            }
+
+            @Override
+            public T next() {
+                if (hasNext()) {
+                    return transformer.apply(rowIterator.next());
+                }
+
+                return null;
+            }
+        };
+    }
+
+    /**
      * Get a new row reader that returns the values for only the given columns.
      *
      * @param columns The names of columns to keep.

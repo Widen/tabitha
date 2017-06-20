@@ -65,6 +65,21 @@ class RowReaderTest extends Specification {
         !reader.read().isPresent()
     }
 
+    def "reader transforming"() {
+        when:
+        def row1 = Mock(Row.class)
+        def row2 = Mock(Row.class)
+        def iterator = RowReader.from(row1, row2).transform({row -> 0}).iterator()
+
+        then:
+        iterator.hasNext()
+        iterator.next() == 0
+        iterator.hasNext()
+        iterator.next() == 0
+        !iterator.hasNext()
+        iterator.next() == null
+    }
+
     def "reader take"() {
         when:
         def row1 = Mock(Row.class)
@@ -88,5 +103,20 @@ class RowReaderTest extends Specification {
         then:
         reader.read().get() == row3
         !reader.read().isPresent()
+    }
+
+    def "reader is iterable"() {
+        when:
+        def row1 = Mock(Row.class)
+        def row2 = Mock(Row.class)
+        def iterator = RowReader.from(row1, row2).iterator()
+
+        then:
+        iterator.hasNext()
+        iterator.next() == row1
+        iterator.hasNext()
+        iterator.next() == row2
+        !iterator.hasNext()
+        iterator.next() == null
     }
 }
