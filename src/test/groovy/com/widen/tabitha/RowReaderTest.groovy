@@ -80,12 +80,12 @@ class RowReaderTest extends Specification {
         iterator.next() == null
     }
 
-    def "reader take"() {
+    def "reader limit"() {
         when:
         def row1 = Mock(Row.class)
         def row2 = Mock(Row.class)
         def row3 = Mock(Row.class)
-        def reader = RowReader.from(row1, row2, row3).take(2)
+        def reader = RowReader.from(row1, row2, row3).limit(2)
 
         then:
         reader.read().get() == row1

@@ -305,7 +305,7 @@ public interface RowReader extends Iterable<Row>, Closeable {
      * @param count The maximum number of rows to read.
      * @return The new row reader.
      */
-    default RowReader take(int count) {
+    default RowReader limit(int count) {
         return new RowReader() {
             private int index = 0;
 
