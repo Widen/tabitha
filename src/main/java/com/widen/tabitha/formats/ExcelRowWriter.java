@@ -1,9 +1,6 @@
 package com.widen.tabitha.formats;
 
-import com.widen.tabitha.Column;
-import com.widen.tabitha.Row;
-import com.widen.tabitha.RowWriter;
-import com.widen.tabitha.Variant;
+import com.widen.tabitha.*;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
@@ -13,6 +10,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Optional;
 
 /**
  * Writes rows to an Excel spreadsheet file. Supports creating XLS and XLSX files.
@@ -20,7 +18,7 @@ import java.io.OutputStream;
  * This writer writes rows into memory and flushes changes all at once when {@link #close()} is called. This writer
  * should be avoided in memory-constrained environments.
  */
-public class ExcelRowWriter implements RowWriter {
+public class ExcelRowWriter implements PagedWriter {
     private OutputStream output;
     private Workbook workbook;
     private Sheet sheet;
@@ -43,27 +41,6 @@ public class ExcelRowWriter implements RowWriter {
      * @param legacyFormat Whether the legacy XLS format should be used.
      */
     public ExcelRowWriter(OutputStream output, boolean legacyFormat) {
-        this(output, legacyFormat, null);
-    }
-
-    /**
-     * Create a new Excel row writer.
-     *
-     * @param output    The output stream to write to.
-     * @param sheetName The name of the sheet to write to.
-     */
-    public ExcelRowWriter(OutputStream output, String sheetName) {
-        this(output, false, sheetName);
-    }
-
-    /**
-     * Create a new Excel row writer.
-     *
-     * @param output       The output stream to write to.
-     * @param legacyFormat Whether the legacy XLS format should be used.
-     * @param sheetName    The name of the sheet to write to.
-     */
-    public ExcelRowWriter(OutputStream output, boolean legacyFormat, String sheetName) {
         this.output = output;
 
         if (legacyFormat) {
@@ -71,12 +48,26 @@ public class ExcelRowWriter implements RowWriter {
         } else {
             workbook = new XSSFWorkbook();
         }
+    }
 
-        // Create the first sheet.
-        if (sheetName == null) {
-            sheetName = "Sheet 1";
-        }
-        createSheet(sheetName);
+    @Override
+    public int getPageIndex() {
+        return workbook.getSheetIndex(getOrCreateSheet());
+    }
+
+    @Override
+    public Optional<String> getPageName() {
+        return Optional.ofNullable(getOrCreateSheet().getSheetName());
+    }
+
+    /**
+     * Create a new Excel sheet.
+     * <p>
+     * The new sheet will be named "Sheet {num}", where {num} is the sheet's offset from the beginning.
+     */
+    @Override
+    public void beginPage() {
+        beginPage("Sheet " + workbook.getNumberOfSheets());
     }
 
     /**
@@ -84,7 +75,8 @@ public class ExcelRowWriter implements RowWriter {
      *
      * @param name The name of the sheet.
      */
-    public void createSheet(String name) {
+    @Override
+    public void beginPage(String name) {
         sheet = workbook.createSheet(name);
         headersWritten = false;
         rowIndex = 0;
@@ -93,7 +85,7 @@ public class ExcelRowWriter implements RowWriter {
     @Override
     public void write(Row row) throws IOException {
         if (!headersWritten) {
-            org.apache.poi.ss.usermodel.Row workbookRow = sheet.createRow(rowIndex++);
+            org.apache.poi.ss.usermodel.Row workbookRow = getOrCreateSheet().createRow(rowIndex++);
             Column[] columns = row.columns();
 
             for (int column = 0; column < columns.length; ++column) {
@@ -105,7 +97,7 @@ public class ExcelRowWriter implements RowWriter {
             headersWritten = true;
         }
 
-        org.apache.poi.ss.usermodel.Row workbookRow = sheet.createRow(rowIndex++);
+        org.apache.poi.ss.usermodel.Row workbookRow = getOrCreateSheet().createRow(rowIndex++);
 
         int column = 0;
         for (Row.Cell cell : row) {
@@ -136,5 +128,13 @@ public class ExcelRowWriter implements RowWriter {
     public void close() throws IOException {
         workbook.write(output);
         workbook.close();
+    }
+
+    private Sheet getOrCreateSheet() {
+        if (sheet == null) {
+            beginPage();
+        }
+
+        return sheet;
     }
 }

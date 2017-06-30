@@ -7,7 +7,7 @@ import java.util.function.Function;
 /**
  * Provides various supporting utility methods used within Tabitha.
  */
-public class Utils {
+public final class Utils {
     /**
      * Apply a function to an array and return a new array with the transformed values.
      *

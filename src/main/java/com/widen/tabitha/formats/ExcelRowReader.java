@@ -1,9 +1,7 @@
 package com.widen.tabitha.formats;
 
+import com.widen.tabitha.*;
 import com.widen.tabitha.Row;
-import com.widen.tabitha.RowReader;
-import com.widen.tabitha.Schema;
-import com.widen.tabitha.Variant;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.*;
@@ -18,11 +16,15 @@ import java.util.Optional;
 
 /**
  * Reads rows from an Excel workbook.
+ * <p>
+ * By default, this will read only from the first sheet in the Excel workbook. You can override this by selecting a
+ * different sheet manually using {@link #setSheet(int)} or {@link #setSheet(String)}.
  */
-public class ExcelRowReader implements RowReader {
-    private Workbook workbook;
+public class ExcelRowReader implements PagedReader {
+    private final Workbook workbook;
+    private Sheet sheet;
     private Schema schema;
-    private int rowIndex = 0;
+    private int currentRow;
 
     public ExcelRowReader(File file) throws InvalidFormatException, IOException {
         this(WorkbookFactory.create(file));
@@ -34,18 +36,84 @@ public class ExcelRowReader implements RowReader {
 
     public ExcelRowReader(Workbook workbook) {
         this.workbook = workbook;
+        setSheet(0);
     }
 
     @Override
-    public Optional<Row> read() throws IOException {
-        if (schema == null) {
-            readHeader();
+    public int getPageIndex() {
+        return workbook.getSheetIndex(sheet);
+    }
+
+    @Override
+    public Optional<String> getPageName() {
+        return Optional.ofNullable(sheet.getSheetName());
+    }
+
+    @Override
+    public boolean nextPage() {
+        return setSheet(getPageIndex() + 1);
+    }
+
+    /**
+     * Set the current sheet. This will reset the reader position to the first row.
+     *
+     * @param index The sheet index.
+     * @return Whether the sheet exists and was set.
+     */
+    public boolean setSheet(int index) {
+        Sheet sheet = workbook.getSheetAt(index);
+
+        return setSheet(sheet);
+    }
+
+    /**
+     * Set the current sheet.
+     *
+     * @param name The sheet name.
+     * @return Whether the sheet exists and was set.
+     */
+    public boolean setSheet(String name) {
+        Sheet sheet = workbook.getSheet(name);
+
+        return setSheet(sheet);
+    }
+
+    private boolean setSheet(Sheet sheet) {
+        if (sheet != null) {
+            this.sheet = sheet;
+            currentRow = 1;
+            schema = null;
+
+            return true;
         }
 
-        org.apache.poi.ss.usermodel.Row row = nextRow();
+        return false;
+    }
+
+    /**
+     * Get the index of the current row.
+     *
+     * @return The current row index.
+     */
+    public int getRowIndex() {
+        return currentRow;
+    }
+
+    /**
+     * Get the row at the given index.
+     *
+     * @return The row if the index is valid.
+     */
+    public Optional<Row> getRow(int index) {
+        if (schema == null) {
+            readSchema();
+        }
+
+        org.apache.poi.ss.usermodel.Row row = sheet.getRow(index);
 
         if (row != null) {
             Variant[] values = new Variant[row.getLastCellNum()];
+
             for (int i = 0; i < row.getLastCellNum(); ++i) {
                 values[i] = getCellValue(row.getCell(i));
             }
@@ -56,8 +124,18 @@ public class ExcelRowReader implements RowReader {
         return Optional.empty();
     }
 
-    private void readHeader() {
-        org.apache.poi.ss.usermodel.Row row = nextRow();
+    @Override
+    public Optional<Row> read() throws IOException {
+        // We've reached the end of the current sheet.
+        if (currentRow > sheet.getLastRowNum()) {
+            return Optional.empty();
+        }
+
+        return getRow(currentRow++);
+    }
+
+    private void readSchema() {
+        org.apache.poi.ss.usermodel.Row row = sheet.getRow(0);
 
         if (row != null) {
             Schema.Builder builder = new Schema.Builder();
@@ -68,19 +146,6 @@ public class ExcelRowReader implements RowReader {
 
             schema = builder.build();
         }
-    }
-
-    private org.apache.poi.ss.usermodel.Row nextRow() {
-        Sheet sheet = workbook.getSheetAt(0);
-
-        if (rowIndex > sheet.getLastRowNum()) {
-            return null;
-        }
-
-        org.apache.poi.ss.usermodel.Row row = sheet.getRow(rowIndex);
-        rowIndex += 1;
-
-        return row;
     }
 
     private Variant getCellValue(Cell cell) {
