@@ -15,7 +15,6 @@ public abstract class Variant {
      * @return The new variant.
      */
     public static Variant of(boolean value) {
-        // Use static objects already initialized to save memory.
         return value ? Bool.TRUE : Bool.FALSE;
     }
 
@@ -121,31 +120,24 @@ public abstract class Variant {
      * A variant representing a boolean true or false value.
      */
     public static final class Bool extends Variant {
-        private final boolean value;
-
         /**
          * The boxed value of {@code true}.
          */
-        public static final Bool TRUE = new Bool(true);
+        public static final Bool TRUE = new Bool();
 
         /**
          * The boxed value of {@code false}.
          */
-        public static final Bool FALSE = new Bool(false);
-
-        // Private to prevent more than two instances from existing.
-        private Bool(boolean value) {
-            this.value = value;
-        }
+        public static final Bool FALSE = new Bool();
 
         @Override
         public Optional<Boolean> getBoolean() {
-            return Optional.of(value);
+            return Optional.of(this == TRUE);
         }
 
         @Override
         public java.lang.String toString() {
-            return Boolean.toString(value);
+            return Boolean.toString(this == TRUE);
         }
 
         @Override
@@ -155,14 +147,13 @@ public abstract class Variant {
             }
 
             if (other instanceof Boolean) {
-                return value == (Boolean) other;
-            }
-
-            if (other instanceof Bool) {
-                return value == ((Bool) other).value;
+                return ((Boolean) other) ? this == TRUE : this == FALSE;
             }
 
             return false;
+        }
+
+        private Bool() {
         }
     }
 
