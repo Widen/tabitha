@@ -16,25 +16,31 @@ import java.io.OutputStream;
 public class RowWriterFactory {
     /**
      * Create a new row writer for the given file path and guess the output format based on the filename.
+     *
+     * @return A row writer for the given path.
      */
-    public static RowWriter createWriter(String path) throws IOException {
-        return createWriter(new File(path));
+    public static RowWriter create(String path) throws IOException {
+        return create(new File(path));
     }
 
     /**
      * Create a new row writer for the given output file and guess the output format based on the filename.
+     *
+     * @return A row writer for the given file.
      */
-    public static RowWriter createWriter(File file) throws IOException {
+    public static RowWriter create(File file) throws IOException {
         OutputStream outputStream = FileUtils.openOutputStream(file);
         String filename = file.getName();
 
-        return createWriter(outputStream, filename);
+        return create(outputStream, filename);
     }
 
     /**
      * Create a new row writer for the given output stream and guess the output format based on a filename.
+     *
+     * @return A row writer for the given output stream.
      */
-    public static RowWriter createWriter(OutputStream outputStream, String filename) {
+    public static RowWriter create(OutputStream outputStream, String filename) {
         String extension = FilenameUtils.getExtension(filename);
 
         if ("xlsx".equals(extension)) {
