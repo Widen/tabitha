@@ -16,9 +16,6 @@ import java.util.Optional;
 
 /**
  * Reads rows from an Excel workbook.
- * <p>
- * By default, this will read only from the first sheet in the Excel workbook. You can override this by selecting a
- * different sheet manually using {@link #setSheet(int)} or {@link #setSheet(String)}.
  */
 public class ExcelRowReader implements PagedReader {
     private final Workbook workbook;
@@ -36,7 +33,7 @@ public class ExcelRowReader implements PagedReader {
 
     public ExcelRowReader(Workbook workbook) {
         this.workbook = workbook;
-        setSheet(0);
+        seekPage(0);
     }
 
     @Override
@@ -51,28 +48,18 @@ public class ExcelRowReader implements PagedReader {
 
     @Override
     public boolean nextPage() {
-        return setSheet(getPageIndex() + 1);
+        return seekPage(getPageIndex() + 1);
     }
 
-    /**
-     * Set the current sheet. This will reset the reader position to the first row.
-     *
-     * @param index The sheet index.
-     * @return Whether the sheet exists and was set.
-     */
-    public boolean setSheet(int index) {
+    @Override
+    public boolean seekPage(int index) {
         Sheet sheet = workbook.getSheetAt(index);
 
         return setSheet(sheet);
     }
 
-    /**
-     * Set the current sheet.
-     *
-     * @param name The sheet name.
-     * @return Whether the sheet exists and was set.
-     */
-    public boolean setSheet(String name) {
+    @Override
+    public boolean seekPage(String name) {
         Sheet sheet = workbook.getSheet(name);
 
         return setSheet(sheet);
