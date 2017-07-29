@@ -3,6 +3,7 @@ package com.widen.tabitha;
 import com.widen.tabitha.formats.DelimitedRowReader;
 import com.widen.tabitha.formats.DelimitedTextFormat;
 import com.widen.tabitha.formats.ExcelRowReader;
+import com.widen.tabitha.formats.ooxml.OOXMLSpreadsheetRowReader;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.tika.Tika;
 
@@ -42,13 +43,15 @@ public class RowReaderFactory {
                 return Optional.of(new DelimitedRowReader(new FileInputStream(file), DelimitedTextFormat.TSV));
 
             case "application/vnd.ms-excel":
-            case "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
-            case "application/x-tika-ooxml":
                 try {
                     return Optional.of(new ExcelRowReader(file));
                 } catch (InvalidFormatException e) {
                     break;
                 }
+
+            case "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
+            case "application/x-tika-ooxml":
+                return Optional.of(OOXMLSpreadsheetRowReader.open(file));
         }
 
         return Optional.empty();

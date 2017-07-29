@@ -14,7 +14,7 @@ public interface PagedReader extends Paged, RowReader {
      *
      * @return True if successful, or false if there is not another page to advance to.
      */
-    boolean nextPage();
+    boolean nextPage() throws IOException;
 
     /**
      * Seek the reader to the first row of the given page.
@@ -26,8 +26,7 @@ public interface PagedReader extends Paged, RowReader {
      * @param index The page index to advance to.
      * @return True if successful, or false if the page was not found.
      */
-    default boolean seekPage(int index)
-    {
+    default boolean seekPage(int index) throws IOException {
         while (index > getPageIndex()) {
             if (!nextPage()) {
                 return false;
@@ -47,8 +46,7 @@ public interface PagedReader extends Paged, RowReader {
      * @param name The name of the page to advance to.
      * @return True if successful, or false if the page was not found.
      */
-    default boolean seekPage(String name)
-    {
+    default boolean seekPage(String name) throws IOException {
         do {
             if (name.equals(getPageName().orElse(null))) {
                 return true;
