@@ -1,4 +1,4 @@
-package com.widen.tabitha.formats.ooxml
+package com.widen.tabitha.formats.excel
 
 import com.widen.tabitha.RowReader
 import com.widen.tabitha.formats.BaseReadTest

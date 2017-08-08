@@ -1,4 +1,4 @@
-package com.widen.tabitha.formats;
+package com.widen.tabitha.formats.excel;
 
 import com.widen.tabitha.*;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
@@ -6,7 +6,7 @@ import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -18,36 +18,17 @@ import java.util.Optional;
  * This writer writes rows into memory and flushes changes all at once when {@link #close()} is called. This writer
  * should be avoided in memory-constrained environments.
  */
-public class ExcelRowWriter implements PagedWriter {
+public abstract class AbstractPOIRowWriter implements PagedWriter {
     private OutputStream output;
     private Workbook workbook;
     private Sheet sheet;
     private boolean headersWritten;
     private int rowIndex;
 
-    /**
-     * Create a new Excel row writer.
-     *
-     * @param output The output stream to write to.
-     */
-    public ExcelRowWriter(OutputStream output) {
-        this(output, false);
-    }
-
-    /**
-     * Create a new Excel row writer.
-     *
-     * @param output       The output stream to write to.
-     * @param legacyFormat Whether the legacy XLS format should be used.
-     */
-    public ExcelRowWriter(OutputStream output, boolean legacyFormat) {
+    protected AbstractPOIRowWriter(Workbook workbook, OutputStream output)
+    {
         this.output = output;
-
-        if (legacyFormat) {
-            workbook = new HSSFWorkbook();
-        } else {
-            workbook = new XSSFWorkbook();
-        }
+        this.workbook = workbook;
     }
 
     @Override
@@ -127,7 +108,10 @@ public class ExcelRowWriter implements PagedWriter {
 
     @Override
     public void close() throws IOException {
-        workbook.write(output);
+        if (output != null) {
+            workbook.write(output);
+        }
+
         workbook.close();
     }
 

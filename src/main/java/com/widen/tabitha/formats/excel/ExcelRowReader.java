@@ -1,4 +1,4 @@
-package com.widen.tabitha.formats;
+package com.widen.tabitha.formats.excel;
 
 import com.widen.tabitha.*;
 import com.widen.tabitha.Row;

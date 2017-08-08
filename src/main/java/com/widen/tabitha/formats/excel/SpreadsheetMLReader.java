@@ -1,4 +1,4 @@
-package com.widen.tabitha.formats.ooxml;
+package com.widen.tabitha.formats.excel;
 
 import com.widen.tabitha.Variant;
 import org.apache.poi.xssf.eventusermodel.ReadOnlySharedStringsTable;

@@ -1,6 +1,7 @@
 package com.widen.tabitha.formats
 
 import com.widen.tabitha.RowReader
+import com.widen.tabitha.formats.excel.ExcelRowReader
 
 class XLSReadTest extends BaseReadTest {
     @Override

@@ -2,8 +2,8 @@ package com.widen.tabitha;
 
 import com.widen.tabitha.formats.DelimitedRowReader;
 import com.widen.tabitha.formats.DelimitedTextFormat;
-import com.widen.tabitha.formats.ExcelRowReader;
-import com.widen.tabitha.formats.ooxml.OOXMLSpreadsheetRowReader;
+import com.widen.tabitha.formats.excel.ExcelRowReader;
+import com.widen.tabitha.formats.excel.OOXMLSpreadsheetRowReader;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.tika.Tika;
 

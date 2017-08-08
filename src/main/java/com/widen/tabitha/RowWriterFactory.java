@@ -2,7 +2,7 @@ package com.widen.tabitha;
 
 import com.widen.tabitha.formats.DelimitedRowWriter;
 import com.widen.tabitha.formats.DelimitedTextFormat;
-import com.widen.tabitha.formats.ExcelRowWriter;
+import com.widen.tabitha.formats.excel.AbstractPOIRowWriter;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 
@@ -44,11 +44,11 @@ public class RowWriterFactory {
         String extension = FilenameUtils.getExtension(filename);
 
         if ("xlsx".equals(extension)) {
-            return new ExcelRowWriter(outputStream, false);
+            return new AbstractPOIRowWriter(outputStream, false);
         }
 
         if ("xls".equals(extension)) {
-            return new ExcelRowWriter(outputStream, true);
+            return new AbstractPOIRowWriter(outputStream, true);
         }
 
         if ("tsv".equals(extension)) {
