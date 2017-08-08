@@ -7,7 +7,7 @@ import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.tika.Tika;
 
 import java.io.File;
-import java.io.FileReader;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Optional;
@@ -36,10 +36,10 @@ public class RowReaderFactory {
         switch (mimeType) {
             case "text/csv":
             case "text/plain":
-                return Optional.of(new DelimitedRowReader(new FileReader(file), DelimitedTextFormat.CSV));
+                return Optional.of(new DelimitedRowReader(new FileInputStream(file), DelimitedTextFormat.CSV));
 
             case "text/tab-separated-values":
-                return Optional.of(new DelimitedRowReader(new FileReader(file), DelimitedTextFormat.TSV));
+                return Optional.of(new DelimitedRowReader(new FileInputStream(file), DelimitedTextFormat.TSV));
 
             case "application/vnd.ms-excel":
             case "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
