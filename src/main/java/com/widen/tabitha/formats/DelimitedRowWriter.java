@@ -20,11 +20,12 @@ public class DelimitedRowWriter implements RowWriter {
     private boolean headersWritten = false;
 
     public DelimitedRowWriter(OutputStream outputStream, DelimitedTextFormat format) {
-        this(new OutputStreamWriter(outputStream, StandardCharsets.UTF_8), format);
-    }
-
-    public DelimitedRowWriter(Writer writer, DelimitedTextFormat format) {
-        this.writer = new CSVWriter(writer, format.getDelimiter(), format.getQuoteCharacter(), format.getEscapeCharacter());
+        this.writer = new CSVWriter(
+            new OutputStreamWriter(outputStream, format.charset),
+            format.delimiter,
+            format.quoteCharacter,
+            format.escapeCharacter
+        );
     }
 
     @Override

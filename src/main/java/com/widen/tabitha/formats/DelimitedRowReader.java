@@ -19,17 +19,13 @@ public class DelimitedRowReader implements RowReader {
     private Schema schema;
 
     public DelimitedRowReader(InputStream inputStream, DelimitedTextFormat format) {
-        this(new InputStreamReader(inputStream, StandardCharsets.UTF_8), format);
-    }
-
-    public DelimitedRowReader(Reader reader, DelimitedTextFormat format) {
         this.reader = new CSVReader(
-            reader,
-            format.getDelimiter(),
-            format.getQuoteCharacter(),
-            format.getEscapeCharacter(),
+            new InputStreamReader(inputStream, format.charset),
+            format.delimiter,
+            format.quoteCharacter,
+            format.escapeCharacter,
             0,
-            format.isStrictQuotes()
+            format.strictQuotes
         );
     }
 
