@@ -23,14 +23,19 @@ public class XLSRowReader implements PagedReader {
     private final RecordFactoryInputStream recordStream;
 
     private SSTRecord stringTable;
-    private String pageName;
-    private int pageIndex = 0;
-    private int rowIndex = 0;
-    private int columnIndex = 0;
     private Schema schema;
 
+    // Name of the current sheet.
+    private String sheetName;
+
+    // Index of the current sheet.
+    private int sheetIndex = -1;
+
+    // Index of the current row.
+    private int rowIndex = -1;
+
     // Records that have already been read that are next to consume.
-    private ArrayDeque<Record> buffer = new ArrayDeque<>();
+    private ArrayDeque<Record> recordBuffer = new ArrayDeque<>();
 
     /**
      * Open an XLS file from the file system.
@@ -62,16 +67,20 @@ public class XLSRowReader implements PagedReader {
 
     @Override
     public int getPageIndex() {
-        return pageIndex;
+        return sheetIndex;
     }
 
     @Override
     public Optional<String> getPageName() {
-        return Optional.ofNullable(pageName);
+        return Optional.ofNullable(sheetName);
     }
 
     @Override
     public boolean nextPage() throws IOException {
+        // Each page has its own schema.
+        schema = null;
+        rowIndex = -1;
+
         while (true) {
             Record record = nextRecord();
 
@@ -81,13 +90,14 @@ public class XLSRowReader implements PagedReader {
 
             if (record.getSid() == BoundSheetRecord.sid) {
                 BoundSheetRecord bsRecord = (BoundSheetRecord) record;
+                sheetIndex++;
 
                 if (ignoreHidden && bsRecord.isHidden()) {
                     continue;
                 }
 
-                pageName = bsRecord.getSheetname();
-                break;
+                sheetName = bsRecord.getSheetname();
+                return true;
             }
         }
 
@@ -96,29 +106,25 @@ public class XLSRowReader implements PagedReader {
 
     @Override
     public Optional<Row> read() throws IOException {
-        if (pageName == null) {
+        if (sheetName == null) {
             nextPage();
         }
 
-        while (true) {
-            Record record = peekRecord();
+        if (schema == null) {
+            schema = readSchema();
 
-            if (record == null) {
+            if (schema == null) {
                 return Optional.empty();
-            }
-
-            // These mark the start of a new row.
-            if (record.getSid() == RowRecord.sid) {
-                RowRecord rowRecord = (RowRecord) record;
-
-                List<Variant> cells = parseRow();
-                // TODO
-
-                break;
             }
         }
 
-        return null;
+        Collection<Variant> values = readValues();
+
+        if (values != null) {
+            return Optional.of(schema.createRow(values));
+        }
+
+        return Optional.empty();
     }
 
     @Override
@@ -127,80 +133,129 @@ public class XLSRowReader implements PagedReader {
         fileSystem.close();
     }
 
-    // Consume the next record in the stream.
-    private Record nextRecord() {
-        if (peekRecord() != null) {
-            return buffer.removeFirst();
+    private Schema readSchema() throws IOException {
+        Collection<Variant> values = readValues();
+
+        if (values != null) {
+            Schema.Builder builder = Schema.builder();
+
+            for (Variant value : values) {
+                builder.add(value.toString());
+            }
+
+            return builder.build();
         }
 
         return null;
     }
 
-    // Peek ahead by one in the record stream. Peeking is necessary because rows and sheets do not have explicit ends.
-    private Record peekRecord() {
-        if (buffer.isEmpty()) {
-            Record record = recordStream.nextRecord();
-
-            if (record != null) {
-                buffer.addLast(record);
-
-                // Handle the SST record here since it might occur anywhere...
-                if (record.getSid() == SSTRecord.sid) {
-                    stringTable = (SSTRecord) record;
-                }
-            }
-        }
-
-        return buffer.peekFirst();
-    }
-
-    private List<Variant> parseRow() {
+    private Collection<Variant> readValues() throws IOException {
+        rowIndex++;
         ArrayList<Variant> cells = new ArrayList<>();
 
         while (true) {
             Record record = peekRecord();
 
-            // These implicitly signify the end of a row.
-            if (record == null || record.getSid() == BoundSheetRecord.sid || record.getSid() == RowRecord.sid) {
-                break;
+            // These implicitly signify the end of the current sheet.
+            if (record == null || record.getSid() == BoundSheetRecord.sid) {
+                return null;
             }
 
-            nextRecord();
+            // These appear in the middle of the cell records, to
+            // specify that the next bunch are empty but styled.
+            // Expand this out into multiple blank cells.
+            if (record.getSid() == MulBlankRecord.sid) {
+                nextRecord();
+                recordBuffer.addAll(Arrays.asList(
+                    RecordFactory.convertBlankRecords((MulBlankRecord) record)
+                ));
 
-            // Parse cell value record types.
-            switch (record.getSid()) {
-                case NumberRecord.sid:
-                    NumberRecord numrec = (NumberRecord) record;
-                    cells.add(Variant.of(numrec.getValue()));
-                    System.out.println("Cell found with value " + numrec.getValue()
-                        + " at row " + numrec.getRow() + " and column " + numrec.getColumn());
-                    break;
+                continue;
+            }
 
-                case LabelSSTRecord.sid:
-                    int index = ((LabelSSTRecord) record).getSSTIndex();
-                    String value = stringTable.getString(index).getString();
-                    cells.add(Variant.of(value));
-                    break;
+            // This is multiple consecutive number cells in one record
+            // Expand this out into multiple regular number cells
+            if (record.getSid() == MulRKRecord.sid) {
+                nextRecord();
+                recordBuffer.addAll(Arrays.asList(
+                    RecordFactory.convertRKRecords((MulRKRecord) record)
+                ));
 
-                // These appear in the middle of the cell records, to
-                //  specify that the next bunch are empty but styled
-                // Expand this out into multiple blank cells
-                case MulBlankRecord.sid:
-                    buffer.addAll(Arrays.asList(
-                        RecordFactory.convertBlankRecords((MulBlankRecord) record)
-                    ));
-                    break;
+                continue;
+            }
 
-                // This is multiple consecutive number cells in one record
-                // Expand this out into multiple regular number cells
-                case MulRKRecord.sid:
-                    buffer.addAll(Arrays.asList(
-                        RecordFactory.convertRKRecords((MulRKRecord) record)
-                    ));
+            // Indicates an actual cell, which is what we are interested in.
+            if (record instanceof CellRecord) {
+                CellRecord cellRecord = (CellRecord) record;
+
+                // Make sure the cell actually belongs to the row we are currently reading.
+                if (cellRecord.getRow() == rowIndex) {
+                    // We're going to accept this record as a cell value, whatever the type.
+                    nextRecord();
+
+                    // Fill in any "missing" / blank cells.
+                    while (cells.size() < cellRecord.getColumn()) {
+                        cells.add(Variant.NONE);
+                    }
+
+                    // Parse a numeric cell.
+                    if (record.getSid() == NumberRecord.sid) {
+                        NumberRecord numberRecord = (NumberRecord) record;
+                        cells.add(Variant.of(numberRecord.getValue()));
+                    }
+
+                    // Parse a shared string cell.
+                    else if (record.getSid() == LabelSSTRecord.sid) {
+                        int index = ((LabelSSTRecord) record).getSSTIndex();
+                        String value = stringTable.getString(index).getString();
+                        cells.add(Variant.of(value));
+                    }
+
+                    // Any other type of cell we don't support, so just put a blank.
+                    else {
+                        cells.add(Variant.NONE);
+                    }
+                } else {
+                    // The cell belongs to a later row, so we probably have reached the end of the current row.
                     break;
+                }
+            }
+
+            // Indicates some other meta record type. We don't care.
+            else {
+                nextRecord();
             }
         }
 
         return cells;
+    }
+
+    // Consume the next record in the stream.
+    private Record nextRecord() {
+        Record record = recordBuffer.pollFirst();
+
+        if (record == null) {
+            record = recordStream.nextRecord();
+
+            // Handle the SST record here since it might occur anywhere...
+            if (record != null && record.getSid() == SSTRecord.sid) {
+                stringTable = (SSTRecord) record;
+            }
+        }
+
+        return record;
+    }
+
+    // Peek ahead by one in the record stream. Peeking is necessary because rows and sheets do not have explicit ends.
+    private Record peekRecord() {
+        if (recordBuffer.isEmpty()) {
+            Record record = nextRecord();
+
+            if (record != null) {
+                recordBuffer.addLast(record);
+            }
+        }
+
+        return recordBuffer.peekFirst();
     }
 }

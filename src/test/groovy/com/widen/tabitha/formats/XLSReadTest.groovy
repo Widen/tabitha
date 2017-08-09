@@ -1,7 +1,8 @@
 package com.widen.tabitha.formats
 
 import com.widen.tabitha.RowReader
-import com.widen.tabitha.formats.excel.ExcelRowReader
+import com.widen.tabitha.formats.excel.WorkbookRowReader
+import com.widen.tabitha.formats.excel.XLSRowReader
 
 class XLSReadTest extends BaseReadTest {
     @Override
@@ -11,11 +12,11 @@ class XLSReadTest extends BaseReadTest {
 
     @Override
     protected RowReader open(File file) {
-        return new ExcelRowReader(file)
+        return XLSRowReader.open(file)
     }
 
     @Override
     protected RowReader open(InputStream inputStream) {
-        return new ExcelRowReader(inputStream)
+        return XLSRowReader.open(inputStream)
     }
 }

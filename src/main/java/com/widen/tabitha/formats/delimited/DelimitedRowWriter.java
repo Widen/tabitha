@@ -1,4 +1,4 @@
-package com.widen.tabitha.formats;
+package com.widen.tabitha.formats.delimited;
 
 import com.opencsv.CSVWriter;
 import com.widen.tabitha.*;
@@ -6,8 +6,6 @@ import com.widen.tabitha.*;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.io.Writer;
-import java.nio.charset.StandardCharsets;
 
 /**
  * Writes rows of values to a delimiter-separated text file.
@@ -16,7 +14,7 @@ public class DelimitedRowWriter implements RowWriter {
     private CSVWriter writer;
     private boolean headersWritten = false;
 
-    public DelimitedRowWriter(OutputStream outputStream, DelimitedTextFormat format) {
+    public DelimitedRowWriter(OutputStream outputStream, DelimitedFormat format) {
         this.writer = new CSVWriter(
             new OutputStreamWriter(outputStream, format.charset),
             format.delimiter,

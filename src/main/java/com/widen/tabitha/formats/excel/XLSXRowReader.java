@@ -20,30 +20,30 @@ import java.util.Optional;
 /**
  * Reads rows from an Office Open XML spreadsheet.
  */
-public class OOXMLSpreadsheetRowReader implements PagedReader {
+public class XLSXRowReader implements PagedReader {
     private final OPCPackage opcPackage;
     private final ReadOnlySharedStringsTable stringsTable;
     private final Iterator<InputStream> sheetIterator;
     private SpreadsheetMLReader sheetReader;
     private Schema schema;
 
-    public static OOXMLSpreadsheetRowReader open(File file) throws IOException {
+    public static XLSXRowReader open(File file) throws IOException {
         try {
-            return new OOXMLSpreadsheetRowReader(OPCPackage.open(file));
+            return new XLSXRowReader(OPCPackage.open(file));
         } catch (InvalidFormatException e) {
             throw new IOException(e);
         }
     }
 
-    public static OOXMLSpreadsheetRowReader open(InputStream inputStream) throws IOException {
+    public static XLSXRowReader open(InputStream inputStream) throws IOException {
         try {
-            return new OOXMLSpreadsheetRowReader(OPCPackage.open(inputStream));
+            return new XLSXRowReader(OPCPackage.open(inputStream));
         } catch (InvalidFormatException e) {
             throw new IOException(e);
         }
     }
 
-    private OOXMLSpreadsheetRowReader(OPCPackage opcPackage) throws IOException {
+    private XLSXRowReader(OPCPackage opcPackage) throws IOException {
         this.opcPackage = opcPackage;
 
         try {

@@ -1,9 +1,9 @@
-package com.widen.tabitha.formats.excel
+package com.widen.tabitha.formats
 
 import com.widen.tabitha.RowReader
-import com.widen.tabitha.formats.BaseReadTest
+import com.widen.tabitha.formats.excel.XLSXRowReader
 
-class OOXMLSpreadsheetReadTest extends BaseReadTest {
+class XLSXReadTest extends BaseReadTest {
     @Override
     protected String getTestFile() {
         return "Workbook1.xlsx"
@@ -11,11 +11,11 @@ class OOXMLSpreadsheetReadTest extends BaseReadTest {
 
     @Override
     protected RowReader open(File file) {
-        return OOXMLSpreadsheetRowReader.open(file)
+        return XLSXRowReader.open(file)
     }
 
     @Override
     protected RowReader open(InputStream inputStream) {
-        return OOXMLSpreadsheetRowReader.open(inputStream)
+        return XLSXRowReader.open(inputStream)
     }
 }
