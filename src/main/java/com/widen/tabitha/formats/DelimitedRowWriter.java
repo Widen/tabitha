@@ -1,10 +1,7 @@
 package com.widen.tabitha.formats;
 
 import com.opencsv.CSVWriter;
-import com.widen.tabitha.Row;
-import com.widen.tabitha.RowWriter;
-import com.widen.tabitha.Utils;
-import com.widen.tabitha.Variant;
+import com.widen.tabitha.*;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -31,15 +28,15 @@ public class DelimitedRowWriter implements RowWriter {
     @Override
     public void write(Row row) throws IOException {
         if (!headersWritten) {
-            writer.writeNext(Utils.mapArray(row.columns(), String.class, column -> column.name));
+            row.schema().ifPresent(schema -> writer.writeNext(schema.toArray()));
             headersWritten = true;
         }
 
-        String[] cells = Utils.mapArray(row.values(), String.class, Variant::toString);
+        String[] cells = Utils.mapArray(row.toArray(), String.class, Variant::toString);
 
         int index = 0;
-        for (Row.Cell cell : row) {
-            cells[index] = cell.value.toString();
+        for (Variant cell : row) {
+            cells[index] = cell.toString();
             ++index;
         }
 

@@ -6,47 +6,80 @@ import java.util.*;
 import java.util.function.Function;
 
 /**
- * Stores a single row of data values, indexed by column.
+ * Stores a single row of data values, ordered by column position.
  */
-public class Row implements Iterable<Row.Cell> {
-    private final Row.Cell[] cells;
+public class Row implements Iterable<Variant> {
+    // The column schema this row is mapped to. May be null.
+    private final Schema schema;
+
+    // Cell values in column order.
+    private final Variant[] cells;
 
     /**
-     * Create a copy of a row.
-     * <p>
-     * This is not a deep copy, as a deep copy is not necessary. Since cells are immutable, columns and values can be
-     * reused without copying. Setting a new value will lazily create a new cell instance.
-     *
-     * @param row The row to copy.
-     * @return A copy of the row.
-     */
-    public static Row copyOf(Row row)
-    {
-        return new Row(Arrays.copyOf(row.cells, row.cells.length));
-    }
-
-    /**
-     * Create a new row that merges the columns and values of all the given rows.
+     * Create a new row that contains the values of all the given rows.
      *
      * @param rows The rows to merge.
      * @return The merged row.
      */
     public static Row merge(Row... rows) {
-        List<Cell> cells = new ArrayList<>();
+        List<Variant> cells = new ArrayList<>();
 
         for (int i = 0; i < rows.length; ++i) {
             cells.addAll(Arrays.asList(rows[i].cells));
         }
 
-        return new Row(cells.toArray(new Cell[cells.size()]));
+        return new Row(null, cells.toArray(new Variant[cells.size()]));
     }
 
     /**
-     * Create a row containing the given cells.
+     * Create a new row containing the given cell values.
      *
+     * @param values The cell values to contain.
+     * @return The new row.
+     */
+    public static Row create(Variant... values) {
+        if (values == null) {
+            return new Row(null, new Variant[0]);
+        }
+
+        return create(Arrays.asList(values));
+    }
+
+    /**
+     * Create a row containing the given cell values.
+     *
+     * @param values The cell values to contain.
+     * @return The new row.
+     */
+    public static Row create(Collection<Variant> values) {
+        if (values == null) {
+            return new Row(null, new Variant[0]);
+        }
+
+        Variant[] cells = new Variant[values.size()];
+        int index = 0;
+
+        for (Variant cell : cells) {
+            if (cell == null) {
+                cells[index] = Variant.NONE;
+            } else {
+                cells[index] = cell;
+            }
+
+            index += 1;
+        }
+
+        return new Row(null, cells);
+    }
+
+    /**
+     * Create a row containing the given cell values. This does not do any null checks.
+     *
+     * @param schema The column schema to use.
      * @param cells The cells to contain.
      */
-    Row(Cell... cells) {
+    Row(Schema schema, Variant[] cells) {
+        this.schema = schema;
         this.cells = cells;
     }
 
@@ -60,51 +93,40 @@ public class Row implements Iterable<Row.Cell> {
     }
 
     /**
-     * Get the value of a cell by column name.
+     * Get the schema used by this row, if any.
      *
-     * @param name The name of the column.
-     * @return The value for the given column, if present.
+     * @return The schema.
      */
-    public Optional<Variant> get(String name) {
-        for (Cell cell : cells) {
-            if (cell.column.name.equals(name)) {
-                return Optional.of(cell.value);
-            }
-        }
-
-        return Optional.empty();
+    public Optional<Schema> schema() {
+        return Optional.ofNullable(schema);
     }
 
     /**
      * Get the value of a cell by index.
      *
      * @param index The index of the column.
-     * @return The value for the given column, if present.
+     * @return The value for the given column, if the index exists.
      */
     public Optional<Variant> get(int index) {
         if (index >= cells.length) {
             return Optional.empty();
         }
 
-        return Optional.ofNullable(cells[index].value);
+        return Optional.ofNullable(cells[index]);
     }
 
     /**
-     * Returns an array containing the cell columns used in the row.
+     * Get the value of a cell by column name.
      *
-     * @return Array of columns.
+     * @param name The name of the column.
+     * @return The value for the given column, if present.
      */
-    public Column[] columns() {
-        return Utils.mapArray(cells, Column.class, cell -> cell.column);
-    }
+    public Optional<Variant> get(String name) {
+        if (schema != null) {
+            return schema.indexOf(name).flatMap(this::get);
+        }
 
-    /**
-     * Returns an array containing the cell values.
-     *
-     * @return Array of values.
-     */
-    public Variant[] values() {
-        return Utils.mapArray(cells, Variant.class, cell -> cell.value);
+        return Optional.empty();
     }
 
     /**
@@ -114,32 +136,13 @@ public class Row implements Iterable<Row.Cell> {
      * @return The new row.
      */
     public Row map(Function<Variant, Variant> mapper) {
-        Cell[] mapped = new Cell[cells.length];
+        Variant[] mapped = new Variant[cells.length];
 
         for (int i = 0; i < mapped.length; ++i) {
-            mapped[i] = new Cell(cells[i].column, mapper.apply(cells[i].value));
+            mapped[i] = mapper.apply(cells[i]);
         }
 
-        return new Row(mapped);
-    }
-
-    /**
-     * Get a new row that contains the values for only the given columns.
-     *
-     * @param columns The names of columns to keep.
-     * @return The new row.
-     */
-    public Row select(String... columns) {
-        List<String> columnsToRetain = Arrays.asList(columns);
-        ArrayList<Cell> cells = new ArrayList<>();
-
-        for (Cell cell : this) {
-            if (columnsToRetain.contains(cell.column.name)) {
-                cells.add(cell);
-            }
-        }
-
-        return new Row(cells.toArray(new Cell[cells.size()]));
+        return new Row(schema, mapped);
     }
 
     /**
@@ -154,41 +157,39 @@ public class Row implements Iterable<Row.Cell> {
             throw new IndexOutOfBoundsException();
         }
 
-        return new Row(Arrays.copyOfRange(cells, start, end));
-    }
-
-    @Override
-    public Iterator<Cell> iterator() {
-        return new ArrayIterator<>(cells);
+        return new Row(schema, Arrays.copyOfRange(cells, start, end));
     }
 
     /**
-     * A single cell from a row containing a value.
+     * Get a new row that contains the values for the given columns.
+     *
+     * If there is no cell mapping for any of the given column names, that value will instead be filled in with
+     * {@link Variant#NONE}.
+     *
+     * @param columns The names of columns to select.
+     * @return The new row.
      */
-    public static final class Cell {
-        /**
-         * The column the cell belongs to.
-         */
-        public final Column column;
+    public Row select(String... columns) {
+        ArrayList<Variant> cells = new ArrayList<>();
 
-        /**
-         * The cell value.
-         */
-        public final Variant value;
-
-        /**
-         * Create a new cell.
-         *
-         * @param column The cell column.
-         * @param value  The cell value.
-         */
-        Cell(Column column, Variant value) {
-            if (column == null || value == null) {
-                throw new NullPointerException();
-            }
-
-            this.column = column;
-            this.value = value;
+        for (String column : columns) {
+            cells.add(get(column).orElse(Variant.NONE));
         }
+
+        return new Row(schema, cells.toArray(new Variant[cells.size()]));
+    }
+
+    /**
+     * Get an array containing all of the values in this row.
+     *
+     * @return The new array.
+     */
+    public Variant[] toArray() {
+        return Arrays.copyOf(cells, cells.length);
+    }
+
+    @Override
+    public Iterator<Variant> iterator() {
+        return new ArrayIterator<>(cells);
     }
 }

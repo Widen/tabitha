@@ -8,9 +8,9 @@ import java.util.function.Consumer;
 /**
  * Defines a list of columns. Used to create rows that follow the schema.
  */
-public class Schema implements Iterable<Column> {
+public class Schema implements Iterable<String> {
     // Ordered list of columns.
-    private Column[] columnsByIndex;
+    private String[] columnsByIndex;
 
     // Maps the column name to the column index. Used for fast lookup of column index by name.
     private Map<String, Integer> columnsByName;
@@ -29,8 +29,8 @@ public class Schema implements Iterable<Column> {
 
         for (Schema schema : schemas) {
             if (schema != null) {
-                for (Column column : schema) {
-                    builder.add(column.name);
+                for (String column : schema) {
+                    builder.add(column);
                 }
             }
         }
@@ -53,11 +53,11 @@ public class Schema implements Iterable<Column> {
      * @param columns The column names.
      */
     public Schema(String... columns) {
-        columnsByIndex = new Column[columns.length];
+        columnsByIndex = new String[columns.length];
         columnsByName = new HashMap<>();
 
         for (int i = 0; i < columns.length; ++i) {
-            columnsByIndex[i] = new Column(columns[i]);
+            columnsByIndex[i] = columns[i].intern();
             columnsByName.put(columns[i], i);
         }
     }
@@ -79,16 +79,7 @@ public class Schema implements Iterable<Column> {
      * @return A new row.
      */
     public Row createRow(Collection<Variant> values) {
-        int count = Math.min(values.size(), size());
-        Row.Cell[] cells = new Row.Cell[count];
-
-        int column = 0;
-        for (Variant value : values) {
-            cells[column] = new Row.Cell(columnsByIndex[column], value);
-            ++column;
-        }
-
-        return new Row(cells);
+        return new Row(this, (Variant[]) values.toArray());
     }
 
     /**
@@ -123,12 +114,12 @@ public class Schema implements Iterable<Column> {
     }
 
     /**
-     * Get a column by index.
+     * Get a column name by index.
      *
      * @param index The column index.
      * @return The column if the index is valid.
      */
-    public Optional<Column> getColumn(int index) {
+    public Optional<String> nameOf(int index) {
         if (index >= 0 && index < columnsByIndex.length) {
             return Optional.of(columnsByIndex[index]);
         }
@@ -137,23 +128,32 @@ public class Schema implements Iterable<Column> {
     }
 
     /**
-     * Get a column by name.
+     * Get the position of a column by name.
      *
      * @param name The column name.
-     * @return The column if it exists.
+     * @return The column position if it exists.
      */
-    public Optional<Column> getColumn(String name) {
+    public Optional<Integer> indexOf(String name) {
         Integer index = columnsByName.get(name);
 
         if (index != null) {
-            return Optional.of(columnsByIndex[index]);
+            return Optional.of(index);
         }
 
         return Optional.empty();
     }
 
+    /**
+     * Get an array containing all of the column names in order.
+     *
+     * @return The new array.
+     */
+    public String[] toArray() {
+        return Arrays.copyOf(columnsByIndex, columnsByIndex.length);
+    }
+
     @Override
-    public Iterator<Column> iterator() {
+    public Iterator<String> iterator() {
         return new ArrayIterator<>(columnsByIndex);
     }
 
@@ -202,11 +202,11 @@ public class Schema implements Iterable<Column> {
      */
     public static class RowBuilder {
         private final Schema schema;
-        private final Row.Cell[] cells;
+        private final Variant[] cells;
 
         private RowBuilder(Schema schema, int size) {
             this.schema = schema;
-            this.cells = new Row.Cell[size];
+            this.cells = new Variant[size];
         }
 
         /**
@@ -222,7 +222,7 @@ public class Schema implements Iterable<Column> {
                 throw new IllegalArgumentException();
             }
 
-            cells[index] = new Row.Cell(schema.columnsByIndex[index], value);
+            cells[index] = value;
         }
 
         /**
@@ -236,7 +236,7 @@ public class Schema implements Iterable<Column> {
                 throw new IndexOutOfBoundsException();
             }
 
-            cells[columnIndex] = new Row.Cell(schema.columnsByIndex[columnIndex], value);
+            cells[columnIndex] = value;
         }
 
         /**
@@ -245,10 +245,7 @@ public class Schema implements Iterable<Column> {
          * @return The new row.
          */
         public Row build() {
-            Row.Cell[] copy = new Row.Cell[cells.length];
-            System.arraycopy(cells, 0, copy, 0, cells.length);
-
-            return new Row(copy);
+            return schema.createRow(cells);
         }
     }
 

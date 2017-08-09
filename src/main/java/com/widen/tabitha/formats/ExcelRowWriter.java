@@ -85,14 +85,16 @@ public class ExcelRowWriter implements PagedWriter {
     @Override
     public void write(Row row) throws IOException {
         if (!headersWritten) {
-            org.apache.poi.ss.usermodel.Row workbookRow = getOrCreateSheet().createRow(rowIndex++);
-            Column[] columns = row.columns();
+            row.schema().ifPresent(schema -> {
+                org.apache.poi.ss.usermodel.Row workbookRow = getOrCreateSheet().createRow(rowIndex++);
 
-            for (int column = 0; column < columns.length; ++column) {
-                Cell workbookCell = workbookRow.createCell(column);
-                workbookCell.setCellType(CellType.STRING);
-                workbookCell.setCellValue(columns[column].name);
-            }
+                int index = 0;
+                for (String column : schema) {
+                    Cell workbookCell = workbookRow.createCell(index++);
+                    workbookCell.setCellType(CellType.STRING);
+                    workbookCell.setCellValue(column);
+                }
+            });
 
             headersWritten = true;
         }
@@ -100,8 +102,7 @@ public class ExcelRowWriter implements PagedWriter {
         org.apache.poi.ss.usermodel.Row workbookRow = getOrCreateSheet().createRow(rowIndex++);
 
         int column = 0;
-        for (Row.Cell cell : row) {
-            Variant value = cell.value;
+        for (Variant value : row) {
             Cell workbookCell = workbookRow.createCell(column);
 
             if (value.isNone()) {

@@ -23,9 +23,9 @@ class SchemaText extends Specification {
             .build()
 
         expect:
-        schema.getColumn("foo").get().name == "foo"
-        schema.getColumn("bar").get().name == "bar"
-        schema.getColumn("baz").get().name == "baz"
+        schema.indexOf("foo").get() == 0
+        schema.indexOf("bar").get() == 1
+        schema.indexOf("baz").get() == 2
     }
 
     def "get columns by index"() {
@@ -37,8 +37,8 @@ class SchemaText extends Specification {
                 .build()
 
         expect:
-        schema.getColumn(0).get().name == "foo"
-        schema.getColumn(1).get().name == "bar"
-        schema.getColumn(2).get().name == "baz"
+        schema.nameOf(0).get() == "foo"
+        schema.nameOf(1).get() == "bar"
+        schema.nameOf(2).get() == "baz"
     }
 }
