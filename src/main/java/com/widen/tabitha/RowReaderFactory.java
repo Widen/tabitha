@@ -3,6 +3,8 @@ package com.widen.tabitha;
 import com.widen.tabitha.formats.delimited.DelimitedRowReader;
 import com.widen.tabitha.formats.delimited.DelimitedFormat;
 import com.widen.tabitha.formats.excel.WorkbookRowReader;
+import com.widen.tabitha.formats.excel.XLSRowReader;
+import com.widen.tabitha.formats.excel.XLSXRowReader;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.tika.Tika;
 
@@ -42,15 +44,11 @@ public class RowReaderFactory {
                 return Optional.of(new DelimitedRowReader(new FileInputStream(file), DelimitedFormat.TSV));
 
             case "application/vnd.ms-excel":
-                try {
-                    return Optional.of(new WorkbookRowReader(file));
-                } catch (InvalidFormatException e) {
-                    break;
-                }
+                return Optional.of(XLSRowReader.open(file));
 
             case "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
             case "application/x-tika-ooxml":
-                return Optional.of(new WorkbookRowReader(file));
+                return Optional.of(XLSXRowReader.open(file));
         }
 
         return Optional.empty();
@@ -82,13 +80,11 @@ public class RowReaderFactory {
                 return Optional.of(new DelimitedRowReader(inputStream, DelimitedFormat.TSV));
 
             case "application/vnd.ms-excel":
+                return Optional.of(XLSRowReader.open(inputStream));
+
             case "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
             case "application/x-tika-ooxml":
-                try {
-                    return Optional.of(new WorkbookRowReader(inputStream));
-                } catch (InvalidFormatException e) {
-                    break;
-                }
+                return Optional.of(XLSXRowReader.open(inputStream));
         }
 
         return Optional.empty();
