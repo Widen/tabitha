@@ -3,71 +3,57 @@ package com.widen.tabitha
 import spock.lang.*
 
 class RowReaderFactoryTest extends Specification {
-    def "read a CSV file"() {
+    def "open a CSV file"() {
         setup:
-        def file = getResourceFile("Workbook1.csv")
-        def reader = RowReaderFactory.open(file).orElse(null)
-        assertContents(reader)
+        def file = Helpers.getResourceFile("Workbook1.csv")
+        def reader = RowReaderFactory.open(file)
+
+        expect:
+        reader.isPresent()
     }
 
-    def "read a CSV stream"() {
+    def "open a CSV stream"() {
         setup:
-        def stream = getResourceStream("Workbook1.csv")
-        def reader = RowReaderFactory.open(stream).orElse(null)
-        assertContents(reader)
+        def stream = Helpers.getResourceStream("Workbook1.csv")
+        def reader = RowReaderFactory.open(stream)
+
+        expect:
+        reader.isPresent()
     }
 
-    def "read an XLS file"() {
+    def "open an XLS file"() {
         setup:
-        def file = getResourceFile("Workbook1.xls")
-        def reader = RowReaderFactory.open(file).orElse(null)
-        assertContents(reader)
+        def file = Helpers.getResourceFile("Workbook1.xls")
+        def reader = RowReaderFactory.open(file)
+
+        expect:
+        reader.isPresent()
     }
 
-    def "read an XLS stream"() {
+    def "open an XLS stream"() {
         setup:
-        def stream = getResourceStream("Workbook1.xls")
-        def reader = RowReaderFactory.open(stream).orElse(null)
-        assertContents(reader)
+        def stream = Helpers.getResourceStream("Workbook1.xls")
+        def reader = RowReaderFactory.open(stream)
+
+        expect:
+        reader.isPresent()
     }
 
-    def "read an XLSX file"() {
+    def "open an XLSX file"() {
         setup:
-        def file = getResourceFile("Workbook1.xlsx")
-        def reader = RowReaderFactory.open(file).orElse(null)
-        assertContents(reader)
+        def file = Helpers.getResourceFile("Workbook1.xlsx")
+        def reader = RowReaderFactory.open(file)
+
+        expect:
+        reader.isPresent()
     }
 
-    def "read an XLSX stream"() {
+    def "open an XLSX stream"() {
         setup:
-        def stream = getResourceStream("Workbook1.xlsx")
-        def reader = RowReaderFactory.open(stream).orElse(null)
-        assertContents(reader)
-    }
+        def stream = Helpers.getResourceStream("Workbook1.xlsx")
+        def reader = RowReaderFactory.open(stream)
 
-    private static void assertContents(RowReader reader) {
-        assert reader != null
-
-        def row = reader.read().orElse(null)
-        assert row != null
-
-        assert row.get("Column A").orElse(null) == Variant.of("foo")
-        assert row.get("Column B").orElse(null) == Variant.of("Party")
-        assert row.get("Column C").orElse(null) == Variant.of("Time")
-
-        assert row.get(0).orElse(null) == Variant.of("foo")
-        assert row.get(1).orElse(null) == Variant.of("Party")
-        assert row.get(2).orElse(null) == Variant.of("Time")
-
-        assert !row.get("Column Phi").isPresent()
-        assert !row.get(3).isPresent()
-    }
-
-    private static File getResourceFile(String name) {
-        return new File(getClass().getResource("/" + name).getFile())
-    }
-
-    private static InputStream getResourceStream(String name) {
-        return getClass().getResourceAsStream("/" + name)
+        expect:
+        reader.isPresent()
     }
 }

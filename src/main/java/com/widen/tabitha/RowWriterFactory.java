@@ -1,8 +1,8 @@
 package com.widen.tabitha;
 
-import com.widen.tabitha.formats.DelimitedRowWriter;
-import com.widen.tabitha.formats.DelimitedTextFormat;
-import com.widen.tabitha.formats.ExcelRowWriter;
+import com.widen.tabitha.formats.delimited.DelimitedRowWriter;
+import com.widen.tabitha.formats.delimited.DelimitedFormat;
+import com.widen.tabitha.formats.excel.WorkbookRowWriter;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 
@@ -44,17 +44,17 @@ public class RowWriterFactory {
         String extension = FilenameUtils.getExtension(filename);
 
         if ("xlsx".equals(extension)) {
-            return new ExcelRowWriter(outputStream, false);
+            return WorkbookRowWriter.xlsx(outputStream);
         }
 
         if ("xls".equals(extension)) {
-            return new ExcelRowWriter(outputStream, true);
+            return WorkbookRowWriter.xls(outputStream);
         }
 
         if ("tsv".equals(extension)) {
-            return new DelimitedRowWriter(outputStream, DelimitedTextFormat.TSV);
+            return new DelimitedRowWriter(outputStream, DelimitedFormat.TSV);
         }
 
-        return new DelimitedRowWriter(outputStream, DelimitedTextFormat.CSV);
+        return new DelimitedRowWriter(outputStream, DelimitedFormat.CSV);
     }
 }

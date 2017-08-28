@@ -1,4 +1,4 @@
-package com.widen.tabitha.formats;
+package com.widen.tabitha.formats.delimited;
 
 import com.opencsv.CSVReader;
 import com.widen.tabitha.*;
@@ -7,8 +7,6 @@ import org.apache.commons.lang3.StringUtils;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.Reader;
-import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
 /**
@@ -18,7 +16,7 @@ public class DelimitedRowReader implements RowReader {
     private CSVReader reader;
     private Schema schema;
 
-    public DelimitedRowReader(InputStream inputStream, DelimitedTextFormat format) {
+    public DelimitedRowReader(InputStream inputStream, DelimitedFormat format) {
         this.reader = new CSVReader(
             new InputStreamReader(inputStream, format.charset),
             format.delimiter,

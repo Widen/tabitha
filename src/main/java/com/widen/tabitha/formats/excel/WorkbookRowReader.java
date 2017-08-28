@@ -1,4 +1,4 @@
-package com.widen.tabitha.formats;
+package com.widen.tabitha.formats.excel;
 
 import com.widen.tabitha.*;
 import com.widen.tabitha.Row;
@@ -15,23 +15,26 @@ import java.util.Date;
 import java.util.Optional;
 
 /**
- * Reads rows from an Excel workbook.
+ * Reads rows from an Excel spreadsheet file using the Apache workbook API.
+ * <p>
+ * This reader loads all spreadsheet data into memory when first opened, so this reader should be avoided when working
+ * with large files or in a memory-constrained environment.
  */
-public class ExcelRowReader implements PagedReader {
+public class WorkbookRowReader implements PagedReader {
     private final Workbook workbook;
     private Sheet sheet;
     private Schema schema;
     private int currentRow;
 
-    public ExcelRowReader(File file) throws InvalidFormatException, IOException {
+    public WorkbookRowReader(File file) throws InvalidFormatException, IOException {
         this(WorkbookFactory.create(file));
     }
 
-    public ExcelRowReader(InputStream inputStream) throws InvalidFormatException, IOException {
+    public WorkbookRowReader(InputStream inputStream) throws InvalidFormatException, IOException {
         this(WorkbookFactory.create(inputStream));
     }
 
-    public ExcelRowReader(Workbook workbook) {
+    public WorkbookRowReader(Workbook workbook) {
         this.workbook = workbook;
         seekPage(0);
     }

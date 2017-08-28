@@ -1,8 +1,10 @@
 package com.widen.tabitha;
 
-import com.widen.tabitha.formats.DelimitedRowReader;
-import com.widen.tabitha.formats.DelimitedTextFormat;
-import com.widen.tabitha.formats.ExcelRowReader;
+import com.widen.tabitha.formats.delimited.DelimitedRowReader;
+import com.widen.tabitha.formats.delimited.DelimitedFormat;
+import com.widen.tabitha.formats.excel.WorkbookRowReader;
+import com.widen.tabitha.formats.excel.XLSRowReader;
+import com.widen.tabitha.formats.excel.XLSXRowReader;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.tika.Tika;
 
@@ -21,7 +23,7 @@ public class RowReaderFactory {
      *
      * @return A row reader if the file is in a supported format.
      */
-    public static Optional<RowReader> open(String path) throws IOException {
+    public static Optional<RowReader> open(String path) throws Exception {
         return open(new File(path));
     }
 
@@ -30,25 +32,23 @@ public class RowReaderFactory {
      *
      * @return A row reader if the file is in a supported format.
      */
-    public static Optional<RowReader> open(File file) throws IOException {
+    public static Optional<RowReader> open(File file) throws Exception {
         String mimeType = tika.detect(file);
 
         switch (mimeType) {
             case "text/csv":
             case "text/plain":
-                return Optional.of(new DelimitedRowReader(new FileInputStream(file), DelimitedTextFormat.CSV));
+                return Optional.of(new DelimitedRowReader(new FileInputStream(file), DelimitedFormat.CSV));
 
             case "text/tab-separated-values":
-                return Optional.of(new DelimitedRowReader(new FileInputStream(file), DelimitedTextFormat.TSV));
+                return Optional.of(new DelimitedRowReader(new FileInputStream(file), DelimitedFormat.TSV));
 
             case "application/vnd.ms-excel":
+                return Optional.of(XLSRowReader.open(file));
+
             case "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
             case "application/x-tika-ooxml":
-                try {
-                    return Optional.of(new ExcelRowReader(file));
-                } catch (InvalidFormatException e) {
-                    break;
-                }
+                return Optional.of(XLSXRowReader.open(file));
         }
 
         return Optional.empty();
@@ -74,19 +74,17 @@ public class RowReaderFactory {
         switch (mimeType) {
             case "text/csv":
             case "text/plain":
-                return Optional.of(new DelimitedRowReader(inputStream, DelimitedTextFormat.CSV));
+                return Optional.of(new DelimitedRowReader(inputStream, DelimitedFormat.CSV));
 
             case "text/tab-separated-values":
-                return Optional.of(new DelimitedRowReader(inputStream, DelimitedTextFormat.TSV));
+                return Optional.of(new DelimitedRowReader(inputStream, DelimitedFormat.TSV));
 
             case "application/vnd.ms-excel":
+                return Optional.of(XLSRowReader.open(inputStream));
+
             case "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
             case "application/x-tika-ooxml":
-                try {
-                    return Optional.of(new ExcelRowReader(inputStream));
-                } catch (InvalidFormatException e) {
-                    break;
-                }
+                return Optional.of(XLSXRowReader.open(inputStream));
         }
 
         return Optional.empty();

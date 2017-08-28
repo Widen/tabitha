@@ -79,7 +79,8 @@ public class Schema implements Iterable<String> {
      * @return A new row.
      */
     public Row createRow(Collection<Variant> values) {
-        return new Row(this, (Variant[]) values.toArray());
+        Variant[] cells = new Variant[values.size()];
+        return new Row(this, values.toArray(cells));
     }
 
     /**
