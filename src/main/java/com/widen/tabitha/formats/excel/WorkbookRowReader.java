@@ -1,6 +1,7 @@
 package com.widen.tabitha.formats.excel;
 
 import com.widen.tabitha.*;
+import com.widen.tabitha.Header;
 import com.widen.tabitha.Row;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
@@ -23,7 +24,7 @@ import java.util.Optional;
 public class WorkbookRowReader implements PagedReader {
     private final Workbook workbook;
     private Sheet sheet;
-    private Schema schema;
+    private Header header;
     private int currentRow;
 
     public WorkbookRowReader(File file) throws InvalidFormatException, IOException {
@@ -72,7 +73,7 @@ public class WorkbookRowReader implements PagedReader {
         if (sheet != null) {
             this.sheet = sheet;
             currentRow = 1;
-            schema = null;
+            header = null;
 
             return true;
         }
@@ -95,8 +96,8 @@ public class WorkbookRowReader implements PagedReader {
      * @return The row if the index is valid.
      */
     public Optional<Row> getRow(int index) {
-        if (schema == null) {
-            readSchema();
+        if (header == null) {
+            readHeader();
         }
 
         org.apache.poi.ss.usermodel.Row row = sheet.getRow(index);
@@ -108,7 +109,7 @@ public class WorkbookRowReader implements PagedReader {
                 values[i] = getCellValue(row.getCell(i));
             }
 
-            return Optional.of(schema.createRow(values));
+            return Optional.of(Row.create(values).withHeader(header));
         }
 
         return Optional.empty();
@@ -124,17 +125,17 @@ public class WorkbookRowReader implements PagedReader {
         return getRow(currentRow++);
     }
 
-    private void readSchema() {
+    private void readHeader() {
         org.apache.poi.ss.usermodel.Row row = sheet.getRow(0);
 
         if (row != null) {
-            Schema.Builder builder = new Schema.Builder();
+            Header.Builder builder = new Header.Builder();
 
             for (int i = 0; i < row.getLastCellNum(); ++i) {
                 builder.add(getCellValue(row.getCell(i)).toString());
             }
 
-            schema = builder.build();
+            header = builder.build();
         }
     }
 

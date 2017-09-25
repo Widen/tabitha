@@ -113,11 +113,11 @@ public class WorkbookRowWriter implements PagedWriter {
     @Override
     public void write(Row row) throws IOException {
         if (!headersWritten) {
-            row.schema().ifPresent(schema -> {
+            row.header().ifPresent(header -> {
                 org.apache.poi.ss.usermodel.Row workbookRow = getOrCreateSheet().createRow(rowIndex++);
 
                 int index = 0;
-                for (String column : schema) {
+                for (String column : header) {
                     Cell workbookCell = workbookRow.createCell(index++);
                     workbookCell.setCellType(CellType.STRING);
                     workbookCell.setCellValue(column);

@@ -26,7 +26,7 @@ public class DelimitedRowWriter implements RowWriter {
     @Override
     public void write(Row row) throws IOException {
         if (!headersWritten) {
-            row.schema().ifPresent(schema -> writer.writeNext(schema.toArray()));
+            row.header().ifPresent(header -> writer.writeNext(header.toArray()));
             headersWritten = true;
         }
 

@@ -2,7 +2,7 @@ package com.widen.tabitha.formats.excel;
 
 import com.widen.tabitha.PagedReader;
 import com.widen.tabitha.Row;
-import com.widen.tabitha.Schema;
+import com.widen.tabitha.Header;
 import com.widen.tabitha.Variant;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.openxml4j.opc.OPCPackage;
@@ -30,7 +30,7 @@ public class XLSXRowReader implements PagedReader {
     private final ReadOnlySharedStringsTable stringsTable;
     private final Iterator<InputStream> sheetIterator;
     private SpreadsheetMLReader sheetReader;
-    private Schema schema;
+    private Header header;
 
     public static XLSXRowReader open(File file) throws IOException {
         try {
@@ -72,8 +72,8 @@ public class XLSXRowReader implements PagedReader {
             sheetReader = null;
         }
 
-        // Each page has its own schema.
-        schema = null;
+        // Each page has its own header.
+        header = null;
 
         if (sheetIterator.hasNext()) {
             InputStream inputStream = sheetIterator.next();
@@ -90,10 +90,10 @@ public class XLSXRowReader implements PagedReader {
 
     @Override
     public Optional<Row> read() throws IOException {
-        if (schema == null) {
-            schema = readSchema();
+        if (header == null) {
+            header = readHeader();
 
-            if (schema == null) {
+            if (header == null) {
                 return Optional.empty();
             }
         }
@@ -101,7 +101,7 @@ public class XLSXRowReader implements PagedReader {
         Collection<Variant> values = readValues();
 
         if (values != null) {
-            return Optional.of(schema.createRow(values));
+            return Optional.of(Row.create(values).withHeader(header));
         }
 
         return Optional.empty();
@@ -117,11 +117,11 @@ public class XLSXRowReader implements PagedReader {
         opcPackage.close();
     }
 
-    private Schema readSchema() throws IOException {
+    private Header readHeader() throws IOException {
         Collection<Variant> values = readValues();
 
         if (values != null) {
-            Schema.Builder builder = Schema.builder();
+            Header.Builder builder = Header.builder();
 
             for (Variant value : values) {
                 builder.add(value.toString());

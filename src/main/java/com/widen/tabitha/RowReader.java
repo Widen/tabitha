@@ -252,6 +252,17 @@ public interface RowReader extends Iterable<Row>, Closeable {
     }
 
     /**
+     * Get a new row reader that returns the values for only columns in the given range.
+     *
+     * @param start The start index, inclusive.
+     * @param end   The ending index, exclusive.
+     * @return The new row reader.
+     */
+    default RowReader range(int start, int end) {
+        return map(row -> row.range(start, end));
+    }
+
+    /**
      * Get a new row reader that returns the values for only the given columns.
      *
      * @param columns The names of columns to keep.
@@ -262,14 +273,13 @@ public interface RowReader extends Iterable<Row>, Closeable {
     }
 
     /**
-     * Get a new row reader that returns the values for only columns in the given range.
+     * Get a new row reader that uses the given header for every row.
      *
-     * @param start The start index, inclusive.
-     * @param end   The ending index, exclusive.
+     * @param header The names of columns to keep.
      * @return The new row reader.
      */
-    default RowReader range(int start, int end) {
-        return map(row -> row.range(start, end));
+    default RowReader withHeader(Header header) {
+        return map(row -> row.withHeader(header));
     }
 
     /**

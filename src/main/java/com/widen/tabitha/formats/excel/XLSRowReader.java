@@ -2,7 +2,7 @@ package com.widen.tabitha.formats.excel;
 
 import com.widen.tabitha.PagedReader;
 import com.widen.tabitha.Row;
-import com.widen.tabitha.Schema;
+import com.widen.tabitha.Header;
 import com.widen.tabitha.Variant;
 import org.apache.poi.hssf.record.*;
 import org.apache.poi.poifs.filesystem.POIFSFileSystem;
@@ -23,7 +23,7 @@ public class XLSRowReader implements PagedReader {
     private final RecordFactoryInputStream recordStream;
 
     private SSTRecord stringTable;
-    private Schema schema;
+    private Header header;
 
     // Name of the current sheet.
     private String sheetName;
@@ -77,8 +77,8 @@ public class XLSRowReader implements PagedReader {
 
     @Override
     public boolean nextPage() throws IOException {
-        // Each page has its own schema.
-        schema = null;
+        // Each page has its own header.
+        header = null;
         rowIndex = -1;
 
         while (true) {
@@ -110,10 +110,10 @@ public class XLSRowReader implements PagedReader {
             nextPage();
         }
 
-        if (schema == null) {
-            schema = readSchema();
+        if (header == null) {
+            header = readHeader();
 
-            if (schema == null) {
+            if (header == null) {
                 return Optional.empty();
             }
         }
@@ -121,7 +121,7 @@ public class XLSRowReader implements PagedReader {
         Collection<Variant> values = readValues();
 
         if (values != null) {
-            return Optional.of(schema.createRow(values));
+            return Optional.of(Row.create(values).withHeader(header));
         }
 
         return Optional.empty();
@@ -133,11 +133,11 @@ public class XLSRowReader implements PagedReader {
         fileSystem.close();
     }
 
-    private Schema readSchema() throws IOException {
+    private Header readHeader() throws IOException {
         Collection<Variant> values = readValues();
 
         if (values != null) {
-            Schema.Builder builder = Schema.builder();
+            Header.Builder builder = Header.builder();
 
             for (Variant value : values) {
                 builder.add(value.toString());
