@@ -64,11 +64,11 @@ public class Row implements Iterable<Variant> {
         Variant[] cells = new Variant[values.size()];
         int index = 0;
 
-        for (Variant cell : cells) {
-            if (cell == null) {
+        for (Variant value : values) {
+            if (value == null) {
                 cells[index] = Variant.NONE;
             } else {
-                cells[index] = cell;
+                cells[index] = value;
             }
 
             index += 1;
