@@ -18,4 +18,14 @@ class XLSXReadTest extends BaseReadTest {
     protected RowReader open(InputStream inputStream) {
         return XLSXRowReader.open(inputStream)
     }
+
+    @Override
+    protected List<List<Object>> getExpectedData() {
+        return [
+            ["Column A", "Column B", "Column C"],
+            ["foo", "Party", "Time"],
+            ["bar", null, "World"],
+            ["baz", "Excel", 10009],
+        ]
+    }
 }

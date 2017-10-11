@@ -1,8 +1,7 @@
 package com.widen.tabitha.formats.excel;
 
-import com.widen.tabitha.PagedReader;
 import com.widen.tabitha.Row;
-import com.widen.tabitha.Header;
+import com.widen.tabitha.RowReader;
 import com.widen.tabitha.Variant;
 import org.apache.poi.hssf.record.*;
 import org.apache.poi.poifs.filesystem.POIFSFileSystem;
@@ -15,7 +14,7 @@ import java.util.*;
 /**
  * Streams rows from an Excel binary spreadsheet file.
  */
-public class XLSRowReader implements PagedReader {
+public class XLSRowReader implements RowReader {
     public boolean ignoreHidden = true;
 
     private final POIFSFileSystem fileSystem;
@@ -23,7 +22,6 @@ public class XLSRowReader implements PagedReader {
     private final RecordFactoryInputStream recordStream;
 
     private SSTRecord stringTable;
-    private Header header;
 
     // Name of the current sheet.
     private String sheetName;
@@ -66,19 +64,12 @@ public class XLSRowReader implements PagedReader {
     }
 
     @Override
-    public int getPageIndex() {
-        return sheetIndex;
-    }
-
-    @Override
     public Optional<String> getPageName() {
         return Optional.ofNullable(sheetName);
     }
 
     @Override
     public boolean nextPage() throws IOException {
-        // Each page has its own header.
-        header = null;
         rowIndex = -1;
 
         while (true) {
@@ -110,18 +101,10 @@ public class XLSRowReader implements PagedReader {
             nextPage();
         }
 
-        if (header == null) {
-            header = readHeader();
-
-            if (header == null) {
-                return Optional.empty();
-            }
-        }
-
         Collection<Variant> values = readValues();
 
         if (values != null) {
-            return Optional.of(Row.create(values).withHeader(header));
+            return Optional.of(Row.create(values));
         }
 
         return Optional.empty();
@@ -131,22 +114,6 @@ public class XLSRowReader implements PagedReader {
     public void close() throws IOException {
         documentStream.close();
         fileSystem.close();
-    }
-
-    private Header readHeader() throws IOException {
-        Collection<Variant> values = readValues();
-
-        if (values != null) {
-            Header.Builder builder = Header.builder();
-
-            for (Variant value : values) {
-                builder.add(value.toString());
-            }
-
-            return builder.build();
-        }
-
-        return null;
     }
 
     private Collection<Variant> readValues() throws IOException {

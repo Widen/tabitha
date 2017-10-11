@@ -78,12 +78,10 @@ public class WorkbookRowWriter implements PagedWriter {
         this.workbook = workbook;
     }
 
-    @Override
     public int getPageIndex() {
         return workbook.getSheetIndex(getOrCreateSheet());
     }
 
-    @Override
     public Optional<String> getPageName() {
         return Optional.ofNullable(getOrCreateSheet().getSheetName());
     }

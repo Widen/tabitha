@@ -1,8 +1,9 @@
 package com.widen.tabitha.formats.excel;
 
-import com.widen.tabitha.*;
 import com.widen.tabitha.Header;
 import com.widen.tabitha.Row;
+import com.widen.tabitha.RowReader;
+import com.widen.tabitha.Variant;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.*;
@@ -21,7 +22,7 @@ import java.util.Optional;
  * This reader loads all spreadsheet data into memory when first opened, so this reader should be avoided when working
  * with large files or in a memory-constrained environment.
  */
-public class WorkbookRowReader implements PagedReader {
+public class WorkbookRowReader implements RowReader {
     private final Workbook workbook;
     private Sheet sheet;
     private Header header;
@@ -40,7 +41,6 @@ public class WorkbookRowReader implements PagedReader {
         seekPage(0);
     }
 
-    @Override
     public int getPageIndex() {
         return workbook.getSheetIndex(sheet);
     }
@@ -55,7 +55,6 @@ public class WorkbookRowReader implements PagedReader {
         return seekPage(getPageIndex() + 1);
     }
 
-    @Override
     public boolean seekPage(int index) {
         Sheet sheet = workbook.getSheetAt(index);
 

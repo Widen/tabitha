@@ -10,6 +10,9 @@ import java.util.stream.Stream;
 
 /**
  * Reads data rows from a data source.
+ * <p>
+ * A data source stores rows in a sequential order, grouped into one or more pages. Pages are ordered sequentially and
+ * rows are always read from the current page.
  */
 @FunctionalInterface
 public interface RowReader extends Iterable<Row>, Closeable {
@@ -166,6 +169,68 @@ public interface RowReader extends Iterable<Row>, Closeable {
     Optional<Row> read() throws IOException;
 
     /**
+     * Get the name of the current page if possible.
+     *
+     * @return The page name, if present.
+     */
+    default Optional<String> getPageName() {
+        return Optional.empty();
+    }
+
+    /**
+     * Advance the reader to the next page of data.
+     *
+     * @return True if successful, or false if there is not another page to advance to.
+     */
+    default boolean nextPage() throws IOException {
+        return false;
+    }
+
+    /**
+     * Seek the reader to the first row of the given page.
+     * <p>
+     * The default implementation of this method traverses pages sequentially using {@link #nextPage()} until a page
+     * with the desired name is reached and so does not support rewinding. If your implementation supports seeking, you
+     * should override this method with a more optimal implementation.
+     *
+     * @param name The name of the page to advance to.
+     * @return True if successful, or false if the page was not found.
+     */
+    default boolean seekPage(String name) throws IOException {
+        do {
+            if (name.equals(getPageName().orElse(null))) {
+                return true;
+            }
+        } while (nextPage());
+
+        return false;
+    }
+
+    /**
+     * Create a new reader that combines all pages into a single continuous page.
+     *
+     * @return The new reader.
+     */
+    default RowReader mergePages() {
+        return new RowReaderDecorator(RowReader.this) {
+            @Override
+            public Optional<Row> read() throws IOException {
+                Optional<Row> nextRow = super.read();
+
+                while (!nextRow.isPresent()) {
+                    if (super.nextPage()) {
+                        nextRow = super.read();
+                    } else {
+                        break;
+                    }
+                }
+
+                return nextRow;
+            }
+        };
+    }
+
+    /**
      * Create a new reader that filters every row read based on a predicate.
      *
      * @param predicate A predicate to apply to each row to determine if it should be included.
@@ -275,11 +340,20 @@ public interface RowReader extends Iterable<Row>, Closeable {
     /**
      * Get a new row reader that uses the given header for every row.
      *
-     * @param header The names of columns to keep.
+     * @param header The header to use.
      * @return The new row reader.
      */
     default RowReader withHeader(Header header) {
         return map(row -> row.withHeader(header));
+    }
+
+    /**
+     * Get a new row reader that interprets the first row of each page as a header.
+     *
+     * @return The new row reader.
+     */
+    default RowReader withInlineHeaders() {
+        return new InlineHeaderReader(this);
     }
 
     /**

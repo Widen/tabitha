@@ -1,8 +1,8 @@
 package com.widen.tabitha.formats.excel;
 
-import com.widen.tabitha.PagedReader;
 import com.widen.tabitha.Row;
 import com.widen.tabitha.Header;
+import com.widen.tabitha.RowReader;
 import com.widen.tabitha.Variant;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.openxml4j.opc.OPCPackage;
@@ -13,10 +13,7 @@ import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
-import java.io.Closeable;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -25,12 +22,11 @@ import java.util.Optional;
 /**
  * Reads rows from an Office Open XML spreadsheet.
  */
-public class XLSXRowReader implements PagedReader {
+public class XLSXRowReader implements RowReader {
     private final OPCPackage opcPackage;
     private final ReadOnlySharedStringsTable stringsTable;
     private final Iterator<InputStream> sheetIterator;
     private SpreadsheetMLReader sheetReader;
-    private Header header;
 
     public static XLSXRowReader open(File file) throws IOException {
         try {
@@ -61,19 +57,11 @@ public class XLSXRowReader implements PagedReader {
     }
 
     @Override
-    public int getPageIndex() {
-        return 0;
-    }
-
-    @Override
     public boolean nextPage() throws IOException {
         if (sheetReader != null) {
             sheetReader.close();
             sheetReader = null;
         }
-
-        // Each page has its own header.
-        header = null;
 
         if (sheetIterator.hasNext()) {
             InputStream inputStream = sheetIterator.next();
@@ -90,21 +78,23 @@ public class XLSXRowReader implements PagedReader {
 
     @Override
     public Optional<Row> read() throws IOException {
-        if (header == null) {
-            header = readHeader();
-
-            if (header == null) {
+        if (sheetReader == null) {
+            if (!nextPage()) {
                 return Optional.empty();
             }
         }
 
-        Collection<Variant> values = readValues();
+        try {
+            Collection<Variant> values = sheetReader.read();
 
-        if (values != null) {
-            return Optional.of(Row.create(values).withHeader(header));
+            if (values != null) {
+                return Optional.of(Row.create(values));
+            }
+
+            return Optional.empty();
+        } catch (XMLStreamException e) {
+            throw new IOException(e);
         }
-
-        return Optional.empty();
     }
 
     @Override
@@ -115,36 +105,6 @@ public class XLSXRowReader implements PagedReader {
         }
 
         opcPackage.close();
-    }
-
-    private Header readHeader() throws IOException {
-        Collection<Variant> values = readValues();
-
-        if (values != null) {
-            Header.Builder builder = Header.builder();
-
-            for (Variant value : values) {
-                builder.add(value.toString());
-            }
-
-            return builder.build();
-        }
-
-        return null;
-    }
-
-    private Collection<Variant> readValues() throws IOException {
-        if (sheetReader == null) {
-            if (!nextPage()) {
-                return null;
-            }
-        }
-
-        try {
-            return sheetReader.read();
-        } catch (XMLStreamException e) {
-            throw new IOException(e);
-        }
     }
 
     /**
