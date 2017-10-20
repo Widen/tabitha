@@ -7,6 +7,8 @@ Tabular data reading, writing, and processing library for JVM languages.
 
 This library is currently under active development and is pre-release.
 
+Made with :heart: by Widen.
+
 ## Features
 - **Immutable data types:** Data is always immutable, which allows methods to be zero-copy operations.
 - **Lazy evaluation:** Data is streamed lazily, allowing for complex data processing and producing while using constant memory.
