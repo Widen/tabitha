@@ -142,6 +142,7 @@ public class XLSXRowReader implements RowReader {
         private final XMLStreamReader reader;
         private final ReadOnlySharedStringsTable stringsTable;
         private final StringBuilder valueBuilder = new StringBuilder();
+        private int cellColumn = 0;
 
         SpreadsheetMLReader(ReadOnlySharedStringsTable strings, InputStream stream) throws XMLStreamException {
             inputStream = stream;
@@ -176,6 +177,7 @@ public class XLSXRowReader implements RowReader {
         }
 
         private Collection<Variant> parseRow() throws XMLStreamException {
+            cellColumn = 0;
             ArrayList<Variant> cells = new ArrayList<>();
 
             while (reader.hasNext()) {
@@ -184,6 +186,12 @@ public class XLSXRowReader implements RowReader {
                 // The start of a new cell.
                 if (event == XMLStreamConstants.START_ELEMENT && elementMatches("c")) {
                     Variant cell = parseCell();
+
+                    // Fill in any "missing" / blank cells.
+                    while (cells.size() < cellColumn) {
+                        cells.add(Variant.NONE);
+                    }
+
                     if (cell != null) {
                         cells.add(cell);
                     }
@@ -201,13 +209,22 @@ public class XLSXRowReader implements RowReader {
         private Variant parseCell() throws XMLStreamException {
             String cellType = "";
             Variant cellValue = null;
+            String cellRefString = null;
 
-            // Figure out the cell data type.
+            // Extract the cell data type and position ref.
             for (int i = 0; i < reader.getAttributeCount(); ++i) {
+                if ("r".equals(reader.getAttributeLocalName(i))) {
+                    cellRefString = reader.getAttributeValue(i);
+                }
+
                 if ("t".equals(reader.getAttributeLocalName(i))) {
                     cellType = reader.getAttributeValue(i);
-                    break;
                 }
+            }
+
+            // Parse the cell ref string so we know what column the cell belongs to.
+            if (cellRefString != null) {
+                cellColumn = ParseHelpers.getColumnFromCellName(cellRefString);
             }
 
             // Get the cell value.
@@ -224,6 +241,7 @@ public class XLSXRowReader implements RowReader {
                 else if (event == XMLStreamConstants.START_ELEMENT && elementMatches("v")) {
                     valueBuilder.setLength(0);
 
+                    // Get the (maybe) cell contents.
                     while (reader.hasNext()) {
                         event = reader.next();
 
