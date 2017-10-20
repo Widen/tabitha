@@ -35,7 +35,8 @@ public class Runner {
     private static void execute() throws IOException {
         ImportCustomizer importCustomizer = new ImportCustomizer();
         importCustomizer.addStarImports("com.widen.tabitha");
-        importCustomizer.addStarImports("com.widen.tabitha.formats");
+        importCustomizer.addStarImports("com.widen.tabitha.formats.delimited");
+        importCustomizer.addStarImports("com.widen.tabitha.formats.excel");
         importCustomizer.addStarImports("com.widen.tabitha.parallel");
 
         CompilerConfiguration configuration = new CompilerConfiguration();
