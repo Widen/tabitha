@@ -25,7 +25,7 @@ class XLSReadTest extends BaseReadTest {
             ["Column A", "Column B", "Column C"],
             ["foo", "Party", "Time"],
             ["bar", null, "World"],
-            ["baz", "Excel", 10009],
+            ["baz", "Excel", 10009.0],
         ]
     }
 }

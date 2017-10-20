@@ -92,7 +92,9 @@ public class XLSRowReader implements RowReader {
     @Override
     public Optional<Row> read() throws IOException {
         if (sheetName == null) {
-            nextPage();
+            if (!nextPage()) {
+                return Optional.empty();
+            }
         }
 
         Collection<Variant> values = readValues();
@@ -111,6 +113,11 @@ public class XLSRowReader implements RowReader {
     }
 
     private Collection<Variant> readValues() throws IOException {
+        // We can't read any values if we are at the end of the stream.
+        if (peekRecord() == null) {
+            return null;
+        }
+
         rowIndex++;
         ArrayList<Variant> cells = new ArrayList<>();
 
@@ -119,7 +126,7 @@ public class XLSRowReader implements RowReader {
 
             // These implicitly signify the end of the current sheet.
             if (record == null || record.getSid() == BoundSheetRecord.sid) {
-                return null;
+                break;
             }
 
             // These appear in the middle of the cell records, to
@@ -198,9 +205,13 @@ public class XLSRowReader implements RowReader {
         if (record == null) {
             record = recordStream.nextRecord();
 
-            // Handle the SST record here since it might occur anywhere...
-            if (record != null && record.getSid() == SSTRecord.sid) {
-                stringTable = (SSTRecord) record;
+            if (record != null) {
+                // Handle the SST record here since it might occur anywhere...
+                if (record.getSid() == SSTRecord.sid) {
+                    stringTable = (SSTRecord) record;
+                }
+            } else {
+                sheetName = null;
             }
         }
 
