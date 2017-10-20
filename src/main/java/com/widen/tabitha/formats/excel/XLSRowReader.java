@@ -15,19 +15,15 @@ import java.util.*;
  * Streams rows from an Excel binary spreadsheet file.
  */
 public class XLSRowReader implements RowReader {
-    public boolean ignoreHidden = true;
-
     private final POIFSFileSystem fileSystem;
     private final InputStream documentStream;
     private final RecordFactoryInputStream recordStream;
+    private final boolean ignoreHiddenRows;
 
     private SSTRecord stringTable;
 
     // Name of the current sheet.
     private String sheetName;
-
-    // Index of the current sheet.
-    private int sheetIndex = -1;
 
     // Index of the current row.
     private int rowIndex = -1;
@@ -38,29 +34,28 @@ public class XLSRowReader implements RowReader {
     /**
      * Open an XLS file from the file system.
      *
-     * @param file
-     * @return
-     * @throws IOException
+     * @param file The file to open.
+     * @return A new row reader.
      */
     public static XLSRowReader open(File file) throws IOException {
-        return new XLSRowReader(new POIFSFileSystem(file));
+        return new XLSRowReader(new POIFSFileSystem(file), true);
     }
 
     /**
      * Open an XLS file from a stream.
      *
-     * @param inputStream
-     * @return
-     * @throws IOException
+     * @param inputStream The stream to open.
+     * @return A new row reader.
      */
     public static XLSRowReader open(InputStream inputStream) throws IOException {
-        return new XLSRowReader(new POIFSFileSystem(inputStream));
+        return new XLSRowReader(new POIFSFileSystem(inputStream), true);
     }
 
-    private XLSRowReader(POIFSFileSystem poifsFileSystem) throws IOException {
+    private XLSRowReader(POIFSFileSystem poifsFileSystem, boolean ignoreHiddenRows) throws IOException {
         fileSystem = poifsFileSystem;
         documentStream = fileSystem.createDocumentInputStream("Workbook");
         recordStream = new RecordFactoryInputStream(documentStream, false);
+        this.ignoreHiddenRows = ignoreHiddenRows;
     }
 
     @Override
@@ -81,9 +76,8 @@ public class XLSRowReader implements RowReader {
 
             if (record.getSid() == BoundSheetRecord.sid) {
                 BoundSheetRecord bsRecord = (BoundSheetRecord) record;
-                sheetIndex++;
 
-                if (ignoreHidden && bsRecord.isHidden()) {
+                if (ignoreHiddenRows && bsRecord.isHidden()) {
                     continue;
                 }
 

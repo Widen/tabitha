@@ -1,7 +1,6 @@
 package com.widen.tabitha.formats.excel;
 
 import com.widen.tabitha.Row;
-import com.widen.tabitha.Header;
 import com.widen.tabitha.RowReader;
 import com.widen.tabitha.Variant;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
@@ -13,10 +12,12 @@ import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
-import java.io.*;
+import java.io.Closeable;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.Optional;
 
 /**
@@ -25,9 +26,15 @@ import java.util.Optional;
 public class XLSXRowReader implements RowReader {
     private final OPCPackage opcPackage;
     private final ReadOnlySharedStringsTable stringsTable;
-    private final Iterator<InputStream> sheetIterator;
+    private final XSSFReader.SheetIterator sheetIterator;
     private SpreadsheetMLReader sheetReader;
 
+    /**
+     * Open an XLSX file from the file system.
+     *
+     * @param file The file to open.
+     * @return A new row reader.
+     */
     public static XLSXRowReader open(File file) throws IOException {
         try {
             return new XLSXRowReader(OPCPackage.open(file));
@@ -36,6 +43,15 @@ public class XLSXRowReader implements RowReader {
         }
     }
 
+    /**
+     * Open an XLSX file from a stream.
+     *
+     * Note that this can use a great deal more memory than {@link #open(File)} as it will temporarily read the entire
+     * stream to memory in order to inspect the zip archive.
+     *
+     * @param inputStream The stream to open.
+     * @return A new row reader.
+     */
     public static XLSXRowReader open(InputStream inputStream) throws IOException {
         try {
             return new XLSXRowReader(OPCPackage.open(inputStream));
@@ -50,10 +66,19 @@ public class XLSXRowReader implements RowReader {
         try {
             stringsTable = new ReadOnlySharedStringsTable(opcPackage);
             XSSFReader xssfReader = new XSSFReader(opcPackage);
-            sheetIterator = xssfReader.getSheetsData();
+            sheetIterator = (XSSFReader.SheetIterator) xssfReader.getSheetsData();
         } catch (Exception e) {
             throw new IOException(e);
         }
+    }
+
+    @Override
+    public Optional<String> getPageName() {
+        if (sheetReader != null) {
+            return Optional.ofNullable(sheetIterator.getSheetName());
+        }
+
+        return Optional.empty();
     }
 
     @Override
