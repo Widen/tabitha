@@ -31,7 +31,7 @@ class PagedReaderTest extends Specification {
         def reader = createPagedReader([
                 [row1],
                 [row2, row3]
-        ]).allPages()
+        ]).mergePages()
 
         expect:
         reader.read().get() == row1
@@ -41,7 +41,7 @@ class PagedReaderTest extends Specification {
     }
 
     private static createPagedReader(List<List<Row>> rows) {
-        return new PagedReader() {
+        return new RowReader() {
             private int page = 0
             private int row = 0
 
@@ -54,11 +54,6 @@ class PagedReaderTest extends Specification {
                 }
 
                 return false
-            }
-
-            @Override
-            int getPageIndex() {
-                return this.page
             }
 
             @Override

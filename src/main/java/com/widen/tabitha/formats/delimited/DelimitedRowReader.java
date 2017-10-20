@@ -1,7 +1,10 @@
 package com.widen.tabitha.formats.delimited;
 
 import com.opencsv.CSVReader;
-import com.widen.tabitha.*;
+import com.widen.tabitha.Row;
+import com.widen.tabitha.RowReader;
+import com.widen.tabitha.Utils;
+import com.widen.tabitha.Variant;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
@@ -14,7 +17,6 @@ import java.util.Optional;
  */
 public class DelimitedRowReader implements RowReader {
     private CSVReader reader;
-    private Schema schema;
 
     public DelimitedRowReader(InputStream inputStream, DelimitedFormat format) {
         this.reader = new CSVReader(
@@ -29,10 +31,6 @@ public class DelimitedRowReader implements RowReader {
 
     @Override
     public Optional<Row> read() throws IOException {
-        if (schema == null) {
-            readHeaders();
-        }
-
         String[] columns = reader.readNext();
         if (columns == null) {
             return Optional.empty();
@@ -40,18 +38,7 @@ public class DelimitedRowReader implements RowReader {
 
         Variant[] values = Utils.mapArray(columns, Variant.class, this::asVariant);
 
-        return Optional.of(schema.createRow(values));
-    }
-
-    private void readHeaders() throws IOException {
-        String[] columns = reader.readNext();
-        Schema.Builder builder = new Schema.Builder();
-
-        for (String column : columns) {
-            builder.add(column);
-        }
-
-        schema = builder.build();
+        return Optional.of(Row.create(values));
     }
 
     private Variant asVariant(String value) {

@@ -53,6 +53,39 @@ public abstract class Variant {
     }
 
     /**
+     * Attempt to create a variant from a value.
+     *
+     * @param value The value to create from.
+     * @return The new variant.
+     * @throws IllegalArgumentException if the object is not representable as a variant.
+     */
+    public static Variant from(Object value) throws IllegalArgumentException {
+        if (value == null) {
+            return NONE;
+        }
+        if (value instanceof Variant) {
+            return (Variant) value;
+        }
+        if (value instanceof Boolean) {
+            return of((Boolean) value);
+        }
+        if (value instanceof java.lang.String) {
+            return of((java.lang.String) value);
+        }
+        if (value instanceof Integer) {
+            return of((Integer) value);
+        }
+        if (value instanceof Long) {
+            return of((Long) value);
+        }
+        if (value instanceof Number) {
+            return of(((Number) value).doubleValue());
+        }
+
+        throw new IllegalArgumentException();
+    }
+
+    /**
      * Check if the variant is empty.
      *
      * @return True if the variant is equal to {@link #NONE}, otherwise false.

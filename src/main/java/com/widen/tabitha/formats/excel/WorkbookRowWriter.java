@@ -78,12 +78,10 @@ public class WorkbookRowWriter implements PagedWriter {
         this.workbook = workbook;
     }
 
-    @Override
     public int getPageIndex() {
         return workbook.getSheetIndex(getOrCreateSheet());
     }
 
-    @Override
     public Optional<String> getPageName() {
         return Optional.ofNullable(getOrCreateSheet().getSheetName());
     }
@@ -113,11 +111,11 @@ public class WorkbookRowWriter implements PagedWriter {
     @Override
     public void write(Row row) throws IOException {
         if (!headersWritten) {
-            row.schema().ifPresent(schema -> {
+            row.header().ifPresent(header -> {
                 org.apache.poi.ss.usermodel.Row workbookRow = getOrCreateSheet().createRow(rowIndex++);
 
                 int index = 0;
-                for (String column : schema) {
+                for (String column : header) {
                     Cell workbookCell = workbookRow.createCell(index++);
                     workbookCell.setCellType(CellType.STRING);
                     workbookCell.setCellValue(column);

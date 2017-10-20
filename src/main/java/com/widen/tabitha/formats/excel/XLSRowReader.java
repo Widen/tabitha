@@ -1,8 +1,7 @@
 package com.widen.tabitha.formats.excel;
 
-import com.widen.tabitha.PagedReader;
 import com.widen.tabitha.Row;
-import com.widen.tabitha.Schema;
+import com.widen.tabitha.RowReader;
 import com.widen.tabitha.Variant;
 import org.apache.poi.hssf.record.*;
 import org.apache.poi.poifs.filesystem.POIFSFileSystem;
@@ -15,21 +14,16 @@ import java.util.*;
 /**
  * Streams rows from an Excel binary spreadsheet file.
  */
-public class XLSRowReader implements PagedReader {
-    public boolean ignoreHidden = true;
-
+public class XLSRowReader implements RowReader {
     private final POIFSFileSystem fileSystem;
     private final InputStream documentStream;
     private final RecordFactoryInputStream recordStream;
+    private final boolean ignoreHiddenRows;
 
     private SSTRecord stringTable;
-    private Schema schema;
 
     // Name of the current sheet.
     private String sheetName;
-
-    // Index of the current sheet.
-    private int sheetIndex = -1;
 
     // Index of the current row.
     private int rowIndex = -1;
@@ -40,34 +34,28 @@ public class XLSRowReader implements PagedReader {
     /**
      * Open an XLS file from the file system.
      *
-     * @param file
-     * @return
-     * @throws IOException
+     * @param file The file to open.
+     * @return A new row reader.
      */
     public static XLSRowReader open(File file) throws IOException {
-        return new XLSRowReader(new POIFSFileSystem(file));
+        return new XLSRowReader(new POIFSFileSystem(file), true);
     }
 
     /**
      * Open an XLS file from a stream.
      *
-     * @param inputStream
-     * @return
-     * @throws IOException
+     * @param inputStream The stream to open.
+     * @return A new row reader.
      */
     public static XLSRowReader open(InputStream inputStream) throws IOException {
-        return new XLSRowReader(new POIFSFileSystem(inputStream));
+        return new XLSRowReader(new POIFSFileSystem(inputStream), true);
     }
 
-    private XLSRowReader(POIFSFileSystem poifsFileSystem) throws IOException {
+    private XLSRowReader(POIFSFileSystem poifsFileSystem, boolean ignoreHiddenRows) throws IOException {
         fileSystem = poifsFileSystem;
         documentStream = fileSystem.createDocumentInputStream("Workbook");
         recordStream = new RecordFactoryInputStream(documentStream, false);
-    }
-
-    @Override
-    public int getPageIndex() {
-        return sheetIndex;
+        this.ignoreHiddenRows = ignoreHiddenRows;
     }
 
     @Override
@@ -77,8 +65,6 @@ public class XLSRowReader implements PagedReader {
 
     @Override
     public boolean nextPage() throws IOException {
-        // Each page has its own schema.
-        schema = null;
         rowIndex = -1;
 
         while (true) {
@@ -90,9 +76,8 @@ public class XLSRowReader implements PagedReader {
 
             if (record.getSid() == BoundSheetRecord.sid) {
                 BoundSheetRecord bsRecord = (BoundSheetRecord) record;
-                sheetIndex++;
 
-                if (ignoreHidden && bsRecord.isHidden()) {
+                if (ignoreHiddenRows && bsRecord.isHidden()) {
                     continue;
                 }
 
@@ -110,18 +95,10 @@ public class XLSRowReader implements PagedReader {
             nextPage();
         }
 
-        if (schema == null) {
-            schema = readSchema();
-
-            if (schema == null) {
-                return Optional.empty();
-            }
-        }
-
         Collection<Variant> values = readValues();
 
         if (values != null) {
-            return Optional.of(schema.createRow(values));
+            return Optional.of(Row.create(values));
         }
 
         return Optional.empty();
@@ -131,22 +108,6 @@ public class XLSRowReader implements PagedReader {
     public void close() throws IOException {
         documentStream.close();
         fileSystem.close();
-    }
-
-    private Schema readSchema() throws IOException {
-        Collection<Variant> values = readValues();
-
-        if (values != null) {
-            Schema.Builder builder = Schema.builder();
-
-            for (Variant value : values) {
-                builder.add(value.toString());
-            }
-
-            return builder.build();
-        }
-
-        return null;
     }
 
     private Collection<Variant> readValues() throws IOException {

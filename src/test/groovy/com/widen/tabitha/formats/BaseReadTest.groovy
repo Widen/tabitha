@@ -9,8 +9,44 @@ import spock.lang.Specification
  * A base class for creating tests to prove the correctness of reading a specific format.
  */
 abstract class BaseReadTest extends Specification {
+    def "can open from file"() {
+        setup:
+        def reader = openFromFile()
+        assert reader != null
+        reader.close()
+    }
+
+    def "can open from stream"() {
+        setup:
+        def reader = openFromStream()
+        assert reader != null
+        reader.close()
+    }
+
+    def "reads the expected contents"() {
+        expect:
+        reader != null
+
+        for (expectedRow in expectedData) {
+            def row = reader.read().orElse(null)
+            assert row != null
+            assert row.size() == expectedRow.size()
+
+            (0 .. row.size() - 1).each {
+                assert row.get(it).orElse(null) == Variant.from(expectedRow[it])
+            }
+
+            assert !row.get(row.size()).isPresent()
+        }
+
+        assert !reader.read().isPresent()
+
+        where:
+        reader << [openFromFile(), openFromStream()]
+    }
+
     /**
-     * Get the name of the test file to test agains.
+     * Get the name of the test file to test against.
      *
      * @return Name of the test file.
      */
@@ -30,41 +66,12 @@ abstract class BaseReadTest extends Specification {
      */
     protected abstract RowReader open(InputStream inputStream)
 
-    def "can open from file"() {
-        setup:
-        def reader = openFromFile()
-        assert reader != null
-        reader.close()
-    }
-
-    def "can open from stream"() {
-        setup:
-        def reader = openFromStream()
-        assert reader != null
-        reader.close()
-    }
-
-    def "contains the right contents"() {
-        expect:
-        reader != null
-
-        def row = reader.read().orElse(null)
-        row != null
-
-        row.get("Column A").orElse(null) == Variant.of("foo")
-        row.get("Column B").orElse(null) == Variant.of("Party")
-        row.get("Column C").orElse(null) == Variant.of("Time")
-
-        row.get(0).orElse(null) == Variant.of("foo")
-        row.get(1).orElse(null) == Variant.of("Party")
-        row.get(2).orElse(null) == Variant.of("Time")
-
-        !row.get("Column Phi").isPresent()
-        !row.get(3).isPresent()
-
-        where:
-        reader << [openFromFile(), openFromStream()]
-    }
+    /**
+     * Get a table of values the test file is expected to contain.
+     *
+     * @return Table of data.
+     */
+    protected abstract List<List<Object>> getExpectedData()
 
     private RowReader openFromFile() {
         def file = Helpers.getResourceFile(getTestFile())

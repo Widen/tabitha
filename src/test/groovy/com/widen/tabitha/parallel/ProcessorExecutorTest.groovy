@@ -2,7 +2,7 @@ package com.widen.tabitha.parallel
 
 import com.widen.tabitha.Row
 import com.widen.tabitha.RowReader
-import com.widen.tabitha.Schema
+import com.widen.tabitha.Header
 import com.widen.tabitha.Variant
 import spock.lang.*
 
@@ -18,12 +18,12 @@ class ProcessorExecutorTest extends Specification {
         })
 
         when:
-        def schema = Schema.builder().add("column").build()
+        def header = Header.builder().add("column").build()
         executor.execute(new RowReader() {
             Optional<Row> read() {
                 if (rowsCreated < 1000) {
                     ++rowsCreated;
-                    return Optional.of(schema.createRow(Variant.NONE))
+                    return Optional.of(Row.create(Variant.NONE).withHeader(header))
                 }
 
                 return Optional.empty()

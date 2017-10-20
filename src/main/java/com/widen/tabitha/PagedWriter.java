@@ -7,7 +7,7 @@ import java.io.IOException;
  * <p>
  * Pages are ordered sequentially and rows are always written to the "active" page.
  */
-public interface PagedWriter extends Paged, RowWriter {
+public interface PagedWriter extends RowWriter {
     /**
      * Begin a new page of data. Subsequent rows written will begin in the newly active page.
      * <p>
