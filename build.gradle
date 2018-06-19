@@ -1,11 +1,12 @@
-apply plugin: 'signing'
-
-archivesBaseName = 'tabitha'
+plugins {
+    id 'signing'
+    id 'com.jfrog.bintray' version '1.8.1'
+}
 
 allprojects {
     apply plugin: 'groovy'
     apply plugin: 'java'
-    apply plugin: 'maven'
+    apply plugin: 'maven-publish'
 
     group 'com.widen.oss'
     version '0.1.1'
@@ -14,29 +15,28 @@ allprojects {
     targetCompatibility = 1.8
 
     repositories {
-        mavenCentral()
+        jcenter()
     }
 
-    sourceSets {
-        main {
-            java {
-                srcDirs = ['src/main/java']
-            }
-            resources {
-                srcDirs = ['src/main/resources']
-            }
-        }
-        test {
-            groovy {
-                srcDirs = ['src/test/groovy']
-            }
-        }
+    bintray {
+        user = bintrayUser
+        key = bintrayApiKey
+    }
+
+    task javadocJar(type: Jar) {
+        classifier = 'javadoc'
+        from javadoc
+    }
+
+    task sourcesJar(type: Jar) {
+        classifier = 'sources'
+        from sourceSets.main.allSource
     }
 }
 
-ext.isReleaseVersion = !version.endsWith('SNAPSHOT')
-ext.username = hasProperty('ossrhUsername') ? ossrhUsername : System.getenv('OSSRH_USERNAME')
-ext.password = hasProperty('ossrhPassword') ? ossrhPassword : System.getenv('OSSRH_PASSWORD')
+description = 'Tabular data reading, writing, and processing library'
+ext.url = 'https://github.com/Widen/tabitha'
+ext.repo = 'https://github.com/Widen/tabitha.git'
 
 dependencies {
     compile 'com.opencsv:opencsv:3.8'
@@ -53,67 +53,53 @@ dependencies {
     testCompile 'org.spockframework:spock-core:1.1-groovy-2.4'
 }
 
-task javadocJar(type: Jar) {
-    classifier = 'javadoc'
-    from javadoc
-}
-
-task sourcesJar(type: Jar) {
-    classifier = 'sources'
-    from sourceSets.main.allSource
-}
-
-artifacts {
-    archives jar
-    archives javadocJar
-    archives sourcesJar
-}
-
-signing {
-    sign configurations.archives
-    required {
-        isReleaseVersion && gradle.taskGraph.hasTask('uploadArchives')
+bintray {
+    publications = ['maven']
+    pkg {
+        repo = 'oss'
+        name = project.name
+        userOrg = 'widen'
+        publish = true
+        version {
+            name = project.version
+        }
     }
 }
 
-uploadArchives {
-    repositories {
-        mavenDeployer {
-            beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
-
-            repository(url: 'https://oss.sonatype.org/service/local/staging/deploy/maven2/') {
-                authentication(userName: username, password: password)
-            }
-
-            snapshotRepository(url: 'https://oss.sonatype.org/content/repositories/snapshots/') {
-                authentication(userName: username, password: password)
-            }
-
-            pom.project {
-                name 'Tabitha'
-                packaging 'jar'
-                description 'Tabular data reading, writing, and processing library'
-                url 'https://github.com/Widen/tabitha'
-                scm {
-                    url 'https://github.com/Widen/tabitha'
-                    connection 'scm:git@github.com:Widen/tabitha.git'
-                    developerConnection 'scm:git@github.com:Widen/tabitha.git'
-                }
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from components.java
+            artifact sourcesJar
+            artifact javadocJar
+            pom {
+                name = project.name
+                description = project.description
+                url = project.ext.url
                 licenses {
                     license {
-                        name 'The MIT License'
-                        url 'https://opensource.org/licenses/MIT'
-                        distribution 'repo'
+                        name = 'The MIT License'
+                        url = 'https://opensource.org/licenses/MIT'
+                        distribution = 'repo'
                     }
                 }
                 developers {
                     developer {
-                        id 'scoakley'
-                        name 'Stephen Coakley'
-                        email 'scoakley@widen.com'
+                        id = 'scoakley'
+                        name = 'Stephen Coakley'
+                        email = 'scoakley@widen.com'
                     }
+                }
+                scm {
+                    url = project.ext.repo
+                    connection = 'scm:git@github.com:Widen/tabitha.git'
+                    developerConnection = 'scm:git@github.com:Widen/tabitha.git'
                 }
             }
         }
     }
+}
+
+signing {
+    sign publishing.publications.maven
 }
