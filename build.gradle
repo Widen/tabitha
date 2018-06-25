@@ -19,8 +19,8 @@ allprojects {
     }
 
     bintray {
-        user = bintrayUser
-        key = bintrayApiKey
+        user = findProperty('bintrayUser') ?: System.getenv('BINTRAY_USER')
+        key = findProperty('bintrayApiKey') ?: System.getenv('BINTRAY_KEY')
     }
 
     task javadocJar(type: Jar) {
