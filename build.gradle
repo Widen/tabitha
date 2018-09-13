@@ -66,6 +66,10 @@ bintray {
     }
 }
 
+bintrayUpload.doFirst {
+    bintrayUpload.versionName = project.version
+}
+
 publishing {
     publications {
         maven(MavenPublication) {
