@@ -44,6 +44,10 @@ public class RowReaderFactory {
      * @return A row reader if the file is in a supported format.
      */
     public static Optional<RowReader> open(File file, ReaderOptions options) throws Exception {
+        if (options == null) {
+            options = new ReaderOptions();
+        }
+
         String mimeType = tika.detect(file);
 
         switch (mimeType) {
@@ -110,6 +114,10 @@ public class RowReaderFactory {
         String filename,
         ReaderOptions options
     ) throws IOException {
+        if (options == null) {
+            options = new ReaderOptions();
+        }
+
         String mimeType = tika.detect(inputStream, filename);
 
         switch (mimeType) {
@@ -132,7 +140,7 @@ public class RowReaderFactory {
     }
 
     private static RowReader decorate(RowReader reader, ReaderOptions options) {
-        if (options != null && options.isInlineHeaders()) {
+        if (options.isInlineHeaders()) {
             reader = new InlineHeaderReader(reader);
         }
         return reader;
