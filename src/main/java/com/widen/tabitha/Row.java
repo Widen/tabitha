@@ -276,4 +276,7 @@ public class Row implements Iterable<Variant> {
             this.cells = cells;
         }
     }
+
+    @Override
+    public String toString() { return Arrays.toString(cells); }
 }
