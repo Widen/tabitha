@@ -4,6 +4,7 @@ import org.apache.commons.collections4.iterators.ArrayIterator;
 
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 /**
  * Stores a single row of data values, ordered by column position.
@@ -61,20 +62,10 @@ public class Row implements Iterable<Variant> {
             return new Row(null, new Variant[0]);
         }
 
-        Variant[] cells = new Variant[values.size()];
-        int index = 0;
-
-        for (Variant value : values) {
-            if (value == null) {
-                cells[index] = Variant.NONE;
-            } else {
-                cells[index] = value;
-            }
-
-            index += 1;
-        }
-
-        return new Row(null, cells);
+        return new Row(null, values
+            .stream()
+            .map(Variant::from)
+            .toArray(Variant[]::new));
     }
 
     /**
@@ -104,6 +95,15 @@ public class Row implements Iterable<Variant> {
      */
     public Optional<Header> header() {
         return Optional.ofNullable(header);
+    }
+
+    /**
+     * Get the cell values in the row from left to right.
+     *
+     * @return The cell values.
+     */
+    public Stream<Variant> cells() {
+        return Arrays.stream(cells);
     }
 
     /**
@@ -139,17 +139,9 @@ public class Row implements Iterable<Variant> {
      * @return The new row.
      */
     public Row map(Function<Variant, Variant> mapper) {
-        Variant[] mapped = new Variant[cells.length];
-
-        for (int i = 0; i < mapped.length; ++i) {
-            mapped[i] = mapper.apply(cells[i]);
-
-            if (mapped[i] == null) {
-                mapped[i] = Variant.NONE;
-            }
-        }
-
-        return new Row(header, mapped);
+        return new Row(header, cells()
+            .map(mapper.andThen(Variant::from))
+            .toArray(Variant[]::new));
     }
 
     /**

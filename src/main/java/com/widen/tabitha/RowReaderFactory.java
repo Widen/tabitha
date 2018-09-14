@@ -1,11 +1,9 @@
 package com.widen.tabitha;
 
-import com.widen.tabitha.formats.delimited.DelimitedRowReader;
 import com.widen.tabitha.formats.delimited.DelimitedFormat;
-import com.widen.tabitha.formats.excel.WorkbookRowReader;
+import com.widen.tabitha.formats.delimited.DelimitedRowReader;
 import com.widen.tabitha.formats.excel.XLSRowReader;
 import com.widen.tabitha.formats.excel.XLSXRowReader;
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.tika.Tika;
 
 import java.io.File;
@@ -21,34 +19,47 @@ public class RowReaderFactory {
     /**
      * Attempt to detect the format of a file at the given path and open it as a row reader.
      *
+     * @param path The file path of the file to open.
      * @return A row reader if the file is in a supported format.
      */
     public static Optional<RowReader> open(String path) throws Exception {
-        return open(new File(path));
+        return open(new File(path), null);
     }
 
     /**
      * Attempt to detect the format of a file and open it as a row reader.
      *
+     * @param file The file to open.
      * @return A row reader if the file is in a supported format.
      */
     public static Optional<RowReader> open(File file) throws Exception {
+        return open(file, null);
+    }
+
+    /**
+     * Attempt to detect the format of a file and open it as a row reader.
+     *
+     * @param file The file to open.
+     * @param options Options to pass to the reader.
+     * @return A row reader if the file is in a supported format.
+     */
+    public static Optional<RowReader> open(File file, ReaderOptions options) throws Exception {
         String mimeType = tika.detect(file);
 
         switch (mimeType) {
             case "text/csv":
             case "text/plain":
-                return Optional.of(new DelimitedRowReader(new FileInputStream(file), DelimitedFormat.CSV));
+                return Optional.of(decorate(new DelimitedRowReader(new FileInputStream(file), DelimitedFormat.CSV), options));
 
             case "text/tab-separated-values":
-                return Optional.of(new DelimitedRowReader(new FileInputStream(file), DelimitedFormat.TSV));
+                return Optional.of(decorate(new DelimitedRowReader(new FileInputStream(file), DelimitedFormat.TSV), options));
 
             case "application/vnd.ms-excel":
-                return Optional.of(XLSRowReader.open(file));
+                return Optional.of(decorate(XLSRowReader.open(file, options), options));
 
             case "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
             case "application/x-tika-ooxml":
-                return Optional.of(XLSXRowReader.open(file));
+                return Optional.of(decorate(XLSXRowReader.open(file, options), options));
         }
 
         return Optional.empty();
@@ -57,37 +68,74 @@ public class RowReaderFactory {
     /**
      * Attempt to detect the format of an input stream and open it as a row reader.
      *
+     * @param inputStream The input stream to read.
      * @return A row reader if the stream is in a supported format.
      */
     public static Optional<RowReader> open(InputStream inputStream) throws IOException {
-        return open(inputStream, null);
+        return open(inputStream, null, null);
     }
 
     /**
      * Attempt to detect the format of an input stream and open it as a row reader.
      *
+     * @param inputStream The input stream to read.
+     * @param filename The filename associated with the stream, if known.
      * @return A row reader if the stream is in a supported format.
      */
     public static Optional<RowReader> open(InputStream inputStream, String filename) throws IOException {
+        return open(inputStream, filename, null);
+    }
+
+    /**
+     * Attempt to detect the format of an input stream and open it as a row reader.
+     *
+     * @param inputStream The input stream to read.
+     * @param options Options to pass to the reader.
+     * @return A row reader if the stream is in a supported format.
+     */
+    public static Optional<RowReader> open(InputStream inputStream, ReaderOptions options) throws IOException {
+        return open(inputStream, null, options);
+    }
+
+    /**
+     * Attempt to detect the format of an input stream and open it as a row reader.
+     *
+     * @param inputStream The input stream to read.
+     * @param filename The filename associated with the stream, if known.
+     * @param options Options to pass to the reader.
+     * @return A row reader if the stream is in a supported format.
+     */
+    public static Optional<RowReader> open(
+        InputStream inputStream,
+        String filename,
+        ReaderOptions options
+    ) throws IOException {
         String mimeType = tika.detect(inputStream, filename);
 
         switch (mimeType) {
             case "text/csv":
             case "text/plain":
-                return Optional.of(new DelimitedRowReader(inputStream, DelimitedFormat.CSV));
+                return Optional.of(decorate(new DelimitedRowReader(inputStream, DelimitedFormat.CSV), options));
 
             case "text/tab-separated-values":
-                return Optional.of(new DelimitedRowReader(inputStream, DelimitedFormat.TSV));
+                return Optional.of(decorate(new DelimitedRowReader(inputStream, DelimitedFormat.TSV), options));
 
             case "application/vnd.ms-excel":
-                return Optional.of(XLSRowReader.open(inputStream));
+                return Optional.of(decorate(XLSRowReader.open(inputStream, options), options));
 
             case "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
             case "application/x-tika-ooxml":
-                return Optional.of(XLSXRowReader.open(inputStream));
+                return Optional.of(decorate(XLSXRowReader.open(inputStream, options), options));
         }
 
         return Optional.empty();
+    }
+
+    private static RowReader decorate(RowReader reader, ReaderOptions options) {
+        if (options != null && options.isInlineHeaders()) {
+            reader = new InlineHeaderReader(reader);
+        }
+        return reader;
     }
 
     // Apache Tika instance for detecting MIME types.

@@ -1,15 +1,29 @@
 package com.widen.tabitha.formats.excel;
 
+import com.widen.tabitha.ReaderOptions;
 import com.widen.tabitha.Row;
 import com.widen.tabitha.RowReader;
 import com.widen.tabitha.Variant;
-import org.apache.poi.hssf.record.*;
+import org.apache.poi.hssf.record.BoundSheetRecord;
+import org.apache.poi.hssf.record.CellRecord;
+import org.apache.poi.hssf.record.LabelSSTRecord;
+import org.apache.poi.hssf.record.MulBlankRecord;
+import org.apache.poi.hssf.record.MulRKRecord;
+import org.apache.poi.hssf.record.NumberRecord;
+import org.apache.poi.hssf.record.Record;
+import org.apache.poi.hssf.record.RecordFactory;
+import org.apache.poi.hssf.record.RecordFactoryInputStream;
+import org.apache.poi.hssf.record.SSTRecord;
 import org.apache.poi.poifs.filesystem.POIFSFileSystem;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Optional;
 
 /**
  * Streams rows from an Excel binary spreadsheet file.
@@ -18,7 +32,7 @@ public class XLSRowReader implements RowReader {
     private final POIFSFileSystem fileSystem;
     private final InputStream documentStream;
     private final RecordFactoryInputStream recordStream;
-    private final boolean ignoreHiddenRows;
+    private final ReaderOptions options;
 
     private SSTRecord stringTable;
 
@@ -35,58 +49,29 @@ public class XLSRowReader implements RowReader {
      * Open an XLS file from the file system.
      *
      * @param file The file to open.
+     * @param options Options to pass to the reader.
      * @return A new row reader.
      */
-    public static XLSRowReader open(File file) throws IOException {
-        return new XLSRowReader(new POIFSFileSystem(file), true);
+    public static XLSRowReader open(File file, ReaderOptions options) throws IOException {
+        return new XLSRowReader(new POIFSFileSystem(file), options);
     }
 
     /**
      * Open an XLS file from a stream.
      *
      * @param inputStream The stream to open.
+     * @param options Options to pass to the reader.
      * @return A new row reader.
      */
-    public static XLSRowReader open(InputStream inputStream) throws IOException {
-        return new XLSRowReader(new POIFSFileSystem(inputStream), true);
+    public static XLSRowReader open(InputStream inputStream, ReaderOptions options) throws IOException {
+        return new XLSRowReader(new POIFSFileSystem(inputStream), options);
     }
 
-    private XLSRowReader(POIFSFileSystem poifsFileSystem, boolean ignoreHiddenRows) throws IOException {
+    private XLSRowReader(POIFSFileSystem poifsFileSystem, ReaderOptions options) throws IOException {
         fileSystem = poifsFileSystem;
         documentStream = fileSystem.createDocumentInputStream("Workbook");
         recordStream = new RecordFactoryInputStream(documentStream, false);
-        this.ignoreHiddenRows = ignoreHiddenRows;
-    }
-
-    @Override
-    public Optional<String> getPageName() {
-        return Optional.ofNullable(sheetName);
-    }
-
-    @Override
-    public boolean nextPage() throws IOException {
-        rowIndex = -1;
-
-        while (true) {
-            Record record = nextRecord();
-
-            if (record == null) {
-                break;
-            }
-
-            if (record.getSid() == BoundSheetRecord.sid) {
-                BoundSheetRecord bsRecord = (BoundSheetRecord) record;
-
-                if (ignoreHiddenRows && bsRecord.isHidden()) {
-                    continue;
-                }
-
-                sheetName = bsRecord.getSheetname();
-                return true;
-            }
-        }
-
-        return false;
+        this.options = options != null ? options : new ReaderOptions();
     }
 
     @Override
@@ -112,7 +97,32 @@ public class XLSRowReader implements RowReader {
         fileSystem.close();
     }
 
-    private Collection<Variant> readValues() throws IOException {
+    private boolean nextPage() {
+        rowIndex = -1;
+
+        while (true) {
+            Record record = nextRecord();
+
+            if (record == null) {
+                break;
+            }
+
+            if (record.getSid() == BoundSheetRecord.sid) {
+                BoundSheetRecord bsRecord = (BoundSheetRecord) record;
+
+                if (bsRecord.isHidden() && !options.isIncludeHiddenRows()) {
+                    continue;
+                }
+
+                sheetName = bsRecord.getSheetname();
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private Collection<Variant> readValues() {
         // We can't read any values if we are at the end of the stream.
         if (peekRecord() == null) {
             return null;
@@ -124,8 +134,8 @@ public class XLSRowReader implements RowReader {
         while (true) {
             Record record = peekRecord();
 
-            // These implicitly signify the end of the current sheet.
-            if (record == null || record.getSid() == BoundSheetRecord.sid) {
+            // This implicitly signifies the end of the file.
+            if (record == null) {
                 break;
             }
 
@@ -183,7 +193,8 @@ public class XLSRowReader implements RowReader {
                     else {
                         cells.add(Variant.NONE);
                     }
-                } else {
+                }
+                else {
                     // The cell belongs to a later row, so we probably have reached the end of the current row.
                     break;
                 }
@@ -210,7 +221,8 @@ public class XLSRowReader implements RowReader {
                 if (record.getSid() == SSTRecord.sid) {
                     stringTable = (SSTRecord) record;
                 }
-            } else {
+            }
+            else {
                 sheetName = null;
             }
         }

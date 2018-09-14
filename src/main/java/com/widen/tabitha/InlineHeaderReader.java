@@ -6,17 +6,18 @@ import java.util.Optional;
 /**
  * Wraps another reader, interpreting the first row of each page of data as the header for subsequent rows.
  */
-class InlineHeaderReader extends RowReaderDecorator {
+class InlineHeaderReader implements RowReader {
+    private final RowReader inner;
     private Header header;
 
     InlineHeaderReader(RowReader inner) {
-        super(inner);
+        this.inner = inner;
     }
 
     @Override
     public Optional<Row> read() throws IOException {
         if (header == null) {
-            header = super.read()
+            header = inner.read()
                 .map(this::createHeaderFromRow)
                 .orElse(null);
 
@@ -25,25 +26,7 @@ class InlineHeaderReader extends RowReaderDecorator {
             }
         }
 
-        return super.read().map(row -> row.withHeader(header));
-    }
-
-    @Override
-    public boolean nextPage() throws IOException {
-        if (super.nextPage()) {
-            header = null;
-            return true;
-        }
-        return false;
-    }
-
-    @Override
-    public boolean seekPage(String name) throws IOException {
-        if (super.seekPage(name)) {
-            header = null;
-            return true;
-        }
-        return false;
+        return inner.read().map(row -> row.withHeader(header));
     }
 
     private Header createHeaderFromRow(Row row) {

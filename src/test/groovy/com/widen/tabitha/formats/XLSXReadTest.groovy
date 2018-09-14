@@ -11,12 +11,12 @@ class XLSXReadTest extends BaseReadTest {
 
     @Override
     protected RowReader open(File file) {
-        return XLSXRowReader.open(file)
+        return XLSXRowReader.open(file, null)
     }
 
     @Override
     protected RowReader open(InputStream inputStream) {
-        return XLSXRowReader.open(inputStream)
+        return XLSXRowReader.open(inputStream, null)
     }
 
     @Override

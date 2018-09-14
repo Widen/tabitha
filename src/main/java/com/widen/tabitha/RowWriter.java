@@ -6,7 +6,6 @@ import java.io.IOException;
 /**
  * Writes data rows to an output.
  */
-@FunctionalInterface
 public interface RowWriter extends Closeable {
     /**
      * A row writer that discards all rows written to it.

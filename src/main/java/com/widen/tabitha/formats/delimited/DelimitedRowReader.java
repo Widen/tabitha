@@ -3,13 +3,13 @@ package com.widen.tabitha.formats.delimited;
 import com.opencsv.CSVReader;
 import com.widen.tabitha.Row;
 import com.widen.tabitha.RowReader;
-import com.widen.tabitha.Utils;
 import com.widen.tabitha.Variant;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Arrays;
 import java.util.Optional;
 
 /**
@@ -36,7 +36,7 @@ public class DelimitedRowReader implements RowReader {
             return Optional.empty();
         }
 
-        Variant[] values = Utils.mapArray(columns, Variant.class, this::asVariant);
+        Variant[] values = Arrays.stream(columns).map(this::asVariant).toArray(Variant[]::new);
 
         return Optional.of(Row.create(values));
     }

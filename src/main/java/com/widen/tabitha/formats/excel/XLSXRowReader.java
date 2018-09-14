@@ -1,5 +1,6 @@
 package com.widen.tabitha.formats.excel;
 
+import com.widen.tabitha.ReaderOptions;
 import com.widen.tabitha.Row;
 import com.widen.tabitha.RowReader;
 import com.widen.tabitha.Variant;
@@ -24,6 +25,7 @@ import java.util.Optional;
  * Reads rows from an Office Open XML spreadsheet.
  */
 public class XLSXRowReader implements RowReader {
+    private final ReaderOptions options;
     private final OPCPackage opcPackage;
     private final ReadOnlySharedStringsTable stringsTable;
     private final XSSFReader.SheetIterator sheetIterator;
@@ -33,72 +35,49 @@ public class XLSXRowReader implements RowReader {
      * Open an XLSX file from the file system.
      *
      * @param file The file to open.
+     * @param options Options to pass to the reader.
      * @return A new row reader.
      */
-    public static XLSXRowReader open(File file) throws IOException {
+    public static XLSXRowReader open(File file, ReaderOptions options) throws IOException {
         try {
-            return new XLSXRowReader(OPCPackage.open(file));
-        } catch (InvalidFormatException e) {
+            return new XLSXRowReader(OPCPackage.open(file), options);
+        }
+        catch (InvalidFormatException e) {
             throw new IOException(e);
         }
     }
 
     /**
      * Open an XLSX file from a stream.
-     *
-     * Note that this can use a great deal more memory than {@link #open(File)} as it will temporarily read the entire
-     * stream to memory in order to inspect the zip archive.
+     * <p>
+     * Note that this can use a great deal more memory than {@link #open(File, ReaderOptions)} as it will temporarily
+     * read the entire stream to memory in order to inspect the zip archive.
      *
      * @param inputStream The stream to open.
+     * @param options Options to pass to the reader.
      * @return A new row reader.
      */
-    public static XLSXRowReader open(InputStream inputStream) throws IOException {
+    public static XLSXRowReader open(InputStream inputStream, ReaderOptions options) throws IOException {
         try {
-            return new XLSXRowReader(OPCPackage.open(inputStream));
-        } catch (InvalidFormatException e) {
+            return new XLSXRowReader(OPCPackage.open(inputStream), options);
+        }
+        catch (InvalidFormatException e) {
             throw new IOException(e);
         }
     }
 
-    private XLSXRowReader(OPCPackage opcPackage) throws IOException {
+    private XLSXRowReader(OPCPackage opcPackage, ReaderOptions options) throws IOException {
+        this.options = options != null ? options : new ReaderOptions();
         this.opcPackage = opcPackage;
 
         try {
             stringsTable = new ReadOnlySharedStringsTable(opcPackage);
             XSSFReader xssfReader = new XSSFReader(opcPackage);
             sheetIterator = (XSSFReader.SheetIterator) xssfReader.getSheetsData();
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             throw new IOException(e);
         }
-    }
-
-    @Override
-    public Optional<String> getPageName() {
-        if (sheetReader != null) {
-            return Optional.ofNullable(sheetIterator.getSheetName());
-        }
-
-        return Optional.empty();
-    }
-
-    @Override
-    public boolean nextPage() throws IOException {
-        if (sheetReader != null) {
-            sheetReader.close();
-            sheetReader = null;
-        }
-
-        if (sheetIterator.hasNext()) {
-            InputStream inputStream = sheetIterator.next();
-            try {
-                sheetReader = new SpreadsheetMLReader(stringsTable, inputStream);
-                return true;
-            } catch (XMLStreamException e) {
-                throw new IOException(e);
-            }
-        }
-
-        return false;
     }
 
     @Override
@@ -110,14 +89,19 @@ public class XLSXRowReader implements RowReader {
         }
 
         try {
-            Collection<Variant> values = sheetReader.read();
+            while (sheetReader != null) {
+                Collection<Variant> values = sheetReader.read();
 
-            if (values != null) {
-                return Optional.of(Row.create(values));
+                if (values != null) {
+                    return Optional.of(Row.create(values));
+                }
+
+                nextPage();
             }
 
             return Optional.empty();
-        } catch (XMLStreamException e) {
+        }
+        catch (XMLStreamException e) {
             throw new IOException(e);
         }
     }
@@ -132,23 +116,41 @@ public class XLSXRowReader implements RowReader {
         opcPackage.close();
     }
 
+    private boolean nextPage() throws IOException {
+        if (sheetReader != null) {
+            sheetReader.close();
+            sheetReader = null;
+        }
+
+        if (sheetIterator.hasNext()) {
+            InputStream inputStream = sheetIterator.next();
+            try {
+                sheetReader = new SpreadsheetMLReader(inputStream);
+                return true;
+            }
+            catch (XMLStreamException e) {
+                throw new IOException(e);
+            }
+        }
+
+        return false;
+    }
+
     /**
      * Parses an XML stream of an OpenXML sheet in a lazy manner.
      */
-    private static class SpreadsheetMLReader implements Closeable {
+    private class SpreadsheetMLReader implements Closeable {
         static final String NS_SPREADSHEETML = "http://schemas.openxmlformats.org/spreadsheetml/2006/main";
 
         private final InputStream inputStream;
         private final XMLStreamReader reader;
-        private final ReadOnlySharedStringsTable stringsTable;
         private final StringBuilder valueBuilder = new StringBuilder();
         private int cellColumn = 0;
 
-        SpreadsheetMLReader(ReadOnlySharedStringsTable strings, InputStream stream) throws XMLStreamException {
+        SpreadsheetMLReader(InputStream stream) throws XMLStreamException {
             inputStream = stream;
             XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
             reader = xmlInputFactory.createXMLStreamReader(stream);
-            stringsTable = strings;
         }
 
         /**
@@ -163,6 +165,11 @@ public class XLSXRowReader implements RowReader {
 
                 // Start of a new row.
                 if (event == XMLStreamConstants.START_ELEMENT && elementMatches("row")) {
+                    // Ignore hidden rows.
+                    if (!options.isIncludeHiddenRows() && "1".equals(reader.getAttributeValue(null, "hidden"))) {
+                        continue;
+                    }
+
                     return parseRow();
                 }
             }
@@ -247,7 +254,8 @@ public class XLSXRowReader implements RowReader {
 
                         if (event == XMLStreamConstants.CHARACTERS) {
                             valueBuilder.append(reader.getText());
-                        } else if (event == XMLStreamConstants.END_ELEMENT && elementMatches("v")) {
+                        }
+                        else if (event == XMLStreamConstants.END_ELEMENT && elementMatches("v")) {
                             break;
                         }
                     }
@@ -281,7 +289,8 @@ public class XLSXRowReader implements RowReader {
                             String valueString = valueBuilder.toString();
                             if (valueString.contains(".")) {
                                 cellValue = Variant.of(Double.parseDouble(valueString));
-                            } else {
+                            }
+                            else {
                                 cellValue = Variant.of(Long.parseLong(valueString));
                             }
                             break;
@@ -309,11 +318,13 @@ public class XLSXRowReader implements RowReader {
 
                         if (event == XMLStreamConstants.CHARACTERS) {
                             stringBuilder.append(reader.getTextCharacters());
-                        } else if (event == XMLStreamConstants.END_ELEMENT && elementMatches("t")) {
+                        }
+                        else if (event == XMLStreamConstants.END_ELEMENT && elementMatches("t")) {
                             break;
                         }
                     }
-                } else if (event == XMLStreamConstants.END_ELEMENT && elementMatches("is")) {
+                }
+                else if (event == XMLStreamConstants.END_ELEMENT && elementMatches("is")) {
                     break;
                 }
             }

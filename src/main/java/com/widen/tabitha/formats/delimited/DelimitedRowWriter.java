@@ -6,6 +6,7 @@ import com.widen.tabitha.*;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.util.Arrays;
 
 /**
  * Writes rows of values to a delimiter-separated text file.
@@ -30,13 +31,7 @@ public class DelimitedRowWriter implements RowWriter {
             headersWritten = true;
         }
 
-        String[] cells = Utils.mapArray(row.toArray(), String.class, Variant::toString);
-
-        int index = 0;
-        for (Variant cell : row) {
-            cells[index] = cell.toString();
-            ++index;
-        }
+        String[] cells = row.cells().map(Variant::toString).toArray(String[]::new);
 
         writer.writeNext(cells);
     }
