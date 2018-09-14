@@ -180,4 +180,7 @@ public class Header implements Iterable<String> {
             super("The column '" + column + "' already exists.");
         }
     }
+
+    @Override
+    public String toString() { return columnsByIndex.toString(); }
 }
