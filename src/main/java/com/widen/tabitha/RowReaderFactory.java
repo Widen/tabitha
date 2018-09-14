@@ -1,13 +1,12 @@
 package com.widen.tabitha;
 
-import com.widen.tabitha.formats.delimited.DelimitedRowReader;
 import com.widen.tabitha.formats.delimited.DelimitedFormat;
-import com.widen.tabitha.formats.excel.WorkbookRowReader;
+import com.widen.tabitha.formats.delimited.DelimitedRowReader;
 import com.widen.tabitha.formats.excel.XLSRowReader;
 import com.widen.tabitha.formats.excel.XLSXRowReader;
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.tika.Tika;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -69,6 +68,9 @@ public class RowReaderFactory {
      * @return A row reader if the stream is in a supported format.
      */
     public static Optional<RowReader> open(InputStream inputStream, String filename) throws IOException {
+        // If our input stream supports marks, Tika will rewind the stream back to the start for us after detecting the
+        // format, so ensure our input stream supports it.
+        inputStream = createRewindableInputStream(inputStream);
         String mimeType = tika.detect(inputStream, filename);
 
         switch (mimeType) {
@@ -88,6 +90,10 @@ public class RowReaderFactory {
         }
 
         return Optional.empty();
+    }
+
+    private static InputStream createRewindableInputStream(InputStream inputStream) {
+        return inputStream.markSupported() ? inputStream : new BufferedInputStream(inputStream);
     }
 
     // Apache Tika instance for detecting MIME types.
