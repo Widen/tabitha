@@ -1,16 +1,19 @@
 package com.widen.tabitha.formats.excel;
 
-import com.widen.tabitha.*;
+import com.widen.tabitha.Variant;
+import com.widen.tabitha.writer.PagedWriter;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -26,7 +29,6 @@ public class WorkbookRowWriter implements PagedWriter {
     private OutputStream output;
     private Workbook workbook;
     private Sheet sheet;
-    private boolean headersWritten;
     private int rowIndex;
 
     /**
@@ -46,11 +48,7 @@ public class WorkbookRowWriter implements PagedWriter {
      * @return The new row writer.
      */
     public static WorkbookRowWriter xlsx(File file) throws IOException {
-        try {
-            return new WorkbookRowWriter(new SXSSFWorkbook(new XSSFWorkbook(file), STREAMING_WINDOW_SIZE), null);
-        } catch (InvalidFormatException e) {
-            throw new IOException(e);
-        }
+        return xlsx(new FileOutputStream(file));
     }
 
     /**
@@ -104,45 +102,33 @@ public class WorkbookRowWriter implements PagedWriter {
     @Override
     public void beginPage(String name) {
         sheet = workbook.createSheet(name);
-        headersWritten = false;
         rowIndex = 0;
     }
 
     @Override
-    public void write(Row row) throws IOException {
-        if (!headersWritten) {
-            row.header().ifPresent(header -> {
-                org.apache.poi.ss.usermodel.Row workbookRow = getOrCreateSheet().createRow(rowIndex++);
-
-                int index = 0;
-                for (String column : header) {
-                    Cell workbookCell = workbookRow.createCell(index++);
-                    workbookCell.setCellType(CellType.STRING);
-                    workbookCell.setCellValue(column);
-                }
-            });
-
-            headersWritten = true;
-        }
-
+    public void write(List<Variant> cells) throws IOException {
         org.apache.poi.ss.usermodel.Row workbookRow = getOrCreateSheet().createRow(rowIndex++);
 
         int column = 0;
-        for (Variant value : row) {
+        for (Variant value : cells) {
             Cell workbookCell = workbookRow.createCell(column);
 
             if (value.isNone()) {
                 workbookCell.setCellType(CellType.BLANK);
-            } else if (value.getInteger().isPresent()) {
+            }
+            else if (value.getInteger().isPresent()) {
                 workbookCell.setCellType(CellType.NUMERIC);
                 workbookCell.setCellValue(value.getInteger().get());
-            } else if (value.getFloat().isPresent()) {
+            }
+            else if (value.getFloat().isPresent()) {
                 workbookCell.setCellType(CellType.NUMERIC);
                 workbookCell.setCellValue(value.getFloat().get());
-            } else if (value.getBoolean().isPresent()) {
+            }
+            else if (value.getBoolean().isPresent()) {
                 workbookCell.setCellType(CellType.BOOLEAN);
                 workbookCell.setCellValue(value.getBoolean().get());
-            } else {
+            }
+            else {
                 workbookCell.setCellType(CellType.STRING);
                 workbookCell.setCellValue(value.toString());
             }

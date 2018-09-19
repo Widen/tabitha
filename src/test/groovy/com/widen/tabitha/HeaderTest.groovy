@@ -1,5 +1,6 @@
 package com.widen.tabitha
 
+import com.widen.tabitha.reader.Header
 import spock.lang.*
 
 class HeaderTest extends Specification {

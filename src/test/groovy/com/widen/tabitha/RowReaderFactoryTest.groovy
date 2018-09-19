@@ -1,5 +1,6 @@
 package com.widen.tabitha
 
+import com.widen.tabitha.reader.RowReaderFactory
 import spock.lang.*
 
 class RowReaderFactoryTest extends Specification {
