@@ -1,18 +1,13 @@
 package com.widen.tabitha.reader;
 
-import com.widen.tabitha.formats.delimited.DelimitedFormat;
-import com.widen.tabitha.formats.delimited.DelimitedRowReader;
-import com.widen.tabitha.formats.excel.XLSRowReader;
-import com.widen.tabitha.formats.excel.XLSXRowReader;
+import com.widen.tabitha.formats.FormatRegistry;
+import io.reactivex.Maybe;
 import org.apache.tika.Tika;
 
 import java.io.BufferedInputStream;
-import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Optional;
 
 /**
  * Helper factory methods for creating row readers.
@@ -24,7 +19,7 @@ public class RowReaders {
      * @param path The file path of the file to open.
      * @return A row reader if the file is in a supported format.
      */
-    public static Optional<RowReader> open(String path) throws Exception {
+    public static Maybe<RowReader> open(String path) {
         return open(Paths.get(path), null);
     }
 
@@ -34,7 +29,7 @@ public class RowReaders {
      * @param path The file path of the file to open.
      * @return A row reader if the file is in a supported format.
      */
-    public static Optional<RowReader> open(Path path) throws Exception {
+    public static Maybe<RowReader> open(Path path) {
         return open(path, null);
     }
 
@@ -45,30 +40,11 @@ public class RowReaders {
      * @param options Options to pass to the reader.
      * @return A row reader if the file is in a supported format.
      */
-    public static Optional<RowReader> open(Path path, ReaderOptions options) throws Exception {
-        if (options == null) {
-            options = new ReaderOptions();
-        }
-
-        String mimeType = tika.detect(path);
-
-        switch (mimeType) {
-            case "text/csv":
-            case "text/plain":
-                return Optional.of(decorate(new DelimitedRowReader(Files.newInputStream(path), DelimitedFormat.CSV), options));
-
-            case "text/tab-separated-values":
-                return Optional.of(decorate(new DelimitedRowReader(Files.newInputStream(path), DelimitedFormat.TSV), options));
-
-            case "application/vnd.ms-excel":
-                return Optional.of(decorate(XLSRowReader.open(path, options), options));
-
-            case "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
-            case "application/x-tika-ooxml":
-                return Optional.of(decorate(XLSXRowReader.open(path, options), options));
-        }
-
-        return Optional.empty();
+    public static Maybe<RowReader> open(Path path, ReaderOptions options) {
+        return Maybe
+            .fromCallable(() -> tika.detect(path))
+            .flatMap(FormatRegistry::forMimeType)
+            .map(formatAdapter -> formatAdapter.createReader(path, options != null ? options : new ReaderOptions()));
     }
 
     /**
@@ -77,7 +53,7 @@ public class RowReaders {
      * @param inputStream The input stream to read.
      * @return A row reader if the stream is in a supported format.
      */
-    public static Optional<RowReader> open(InputStream inputStream) throws IOException {
+    public static Maybe<RowReader> open(InputStream inputStream) {
         return open(inputStream, null, null);
     }
 
@@ -88,7 +64,7 @@ public class RowReaders {
      * @param filename The filename associated with the stream, if known.
      * @return A row reader if the stream is in a supported format.
      */
-    public static Optional<RowReader> open(InputStream inputStream, String filename) throws IOException {
+    public static Maybe<RowReader> open(InputStream inputStream, String filename) {
         return open(inputStream, filename, null);
     }
 
@@ -99,7 +75,7 @@ public class RowReaders {
      * @param options Options to pass to the reader.
      * @return A row reader if the stream is in a supported format.
      */
-    public static Optional<RowReader> open(InputStream inputStream, ReaderOptions options) throws IOException {
+    public static Maybe<RowReader> open(InputStream inputStream, ReaderOptions options) {
         return open(inputStream, null, options);
     }
 
@@ -111,44 +87,15 @@ public class RowReaders {
      * @param options Options to pass to the reader.
      * @return A row reader if the stream is in a supported format.
      */
-    public static Optional<RowReader> open(
-        InputStream inputStream,
-        String filename,
-        ReaderOptions options
-    ) throws IOException {
-        if (options == null) {
-            options = new ReaderOptions();
-        }
-
+    public static Maybe<RowReader> open(InputStream inputStream, String filename, ReaderOptions options) {
         // If our input stream supports marks, Tika will rewind the stream back to the start for us after detecting the
         // format, so ensure our input stream supports it.
-        inputStream = createRewindableInputStream(inputStream);
-        String mimeType = tika.detect(inputStream, filename);
+        InputStream rewindableStream = createRewindableInputStream(inputStream);
 
-        switch (mimeType) {
-            case "text/csv":
-            case "text/plain":
-                return Optional.of(decorate(new DelimitedRowReader(inputStream, DelimitedFormat.CSV), options));
-
-            case "text/tab-separated-values":
-                return Optional.of(decorate(new DelimitedRowReader(inputStream, DelimitedFormat.TSV), options));
-
-            case "application/vnd.ms-excel":
-                return Optional.of(decorate(XLSRowReader.open(inputStream, options), options));
-
-            case "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
-            case "application/x-tika-ooxml":
-                return Optional.of(decorate(XLSXRowReader.open(inputStream, options), options));
-        }
-
-        return Optional.empty();
-    }
-
-    private static RowReader decorate(RowReader reader, ReaderOptions options) {
-        if (options.isInlineHeaders()) {
-            reader = new InlineHeaderReader(reader);
-        }
-        return reader;
+        return Maybe
+            .fromCallable(() -> tika.detect(rewindableStream, filename))
+            .flatMap(FormatRegistry::forMimeType)
+            .map(formatAdapter -> formatAdapter.createReader(rewindableStream, options != null ? options : new ReaderOptions()));
     }
 
     private static InputStream createRewindableInputStream(InputStream inputStream) {

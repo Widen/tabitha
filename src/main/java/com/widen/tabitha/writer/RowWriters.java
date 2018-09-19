@@ -1,13 +1,10 @@
 package com.widen.tabitha.writer;
 
-import com.widen.tabitha.formats.delimited.DelimitedFormat;
-import com.widen.tabitha.formats.delimited.DelimitedRowWriter;
-import com.widen.tabitha.formats.excel.WorkbookRowWriter;
-import org.apache.commons.io.FilenameUtils;
+import com.widen.tabitha.formats.FormatRegistry;
+import io.reactivex.Maybe;
+import org.apache.tika.Tika;
 
-import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -21,7 +18,7 @@ public class RowWriters {
      * @param path The path to open.
      * @return A row writer for the given path.
      */
-    public static RowWriter create(String path) throws IOException {
+    public static Maybe<RowWriter> create(String path) {
         return create(Paths.get(path));
     }
 
@@ -31,30 +28,26 @@ public class RowWriters {
      * @param path The path to open.
      * @return A row writer for the given file.
      */
-    public static RowWriter create(Path path) throws IOException {
-        return create(Files.newOutputStream(path), path.getFileName().toString());
+    public static Maybe<RowWriter> create(Path path) {
+        return Maybe
+            .fromCallable(() -> tika.detect(path))
+            .flatMap(FormatRegistry::forMimeType)
+            .map(formatAdapter -> formatAdapter.createWriter(path));
     }
 
     /**
      * Create a new row writer for the given output stream and guess the output format based on a filename.
      *
+     * @param outputStream The output stream to write to.
+     * @param name The name of the output file or format.
      * @return A row writer for the given output stream.
      */
-    public static RowWriter create(OutputStream outputStream, String filename) {
-        String extension = FilenameUtils.getExtension(filename);
-
-        if ("xlsx".equals(extension)) {
-            return WorkbookRowWriter.xlsx(outputStream);
-        }
-
-        if ("xls".equals(extension)) {
-            return WorkbookRowWriter.xls(outputStream);
-        }
-
-        if ("tsv".equals(extension)) {
-            return new DelimitedRowWriter(outputStream, DelimitedFormat.TSV);
-        }
-
-        return new DelimitedRowWriter(outputStream, DelimitedFormat.CSV);
+    public static Maybe<RowWriter> create(OutputStream outputStream, String name) {
+        return FormatRegistry
+            .forMimeType(tika.detect(name))
+            .map(formatAdapter -> formatAdapter.createWriter(outputStream));
     }
+
+    // Apache Tika instance for detecting MIME types.
+    private static final Tika tika = new Tika();
 }

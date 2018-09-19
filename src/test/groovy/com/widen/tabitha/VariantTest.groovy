@@ -1,6 +1,6 @@
 package com.widen.tabitha
 
-import spock.lang.*
+import spock.lang.Specification
 
 class VariantTest extends Specification {
     def "of factory creates correct variant types"() {

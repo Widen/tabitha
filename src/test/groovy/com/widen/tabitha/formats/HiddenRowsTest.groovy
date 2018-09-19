@@ -9,9 +9,9 @@ class HiddenRowsTest extends Specification {
     def "Hidden rows are ignored"() {
         setup:
         def reader = RowReaders.open(
-                Helpers.getResourceStream(file),
-                new ReaderOptions().withIncludeHiddenRows(false)
-        ).get()
+            Helpers.getResourceStream(file),
+            new ReaderOptions().withIncludeHiddenRows(false)
+        ).blockingGet()
 
         expect:
         reader.each { row ->
@@ -25,9 +25,9 @@ class HiddenRowsTest extends Specification {
     def "Hidden rows are not ignored"() {
         setup:
         def reader = RowReaders.open(
-                Helpers.getResourceStream(file),
-                new ReaderOptions().withIncludeHiddenRows(true)
-        ).get()
+            Helpers.getResourceStream(file),
+            new ReaderOptions().withIncludeHiddenRows(true)
+        ).blockingGet()
 
         when:
         def foundHidden = false

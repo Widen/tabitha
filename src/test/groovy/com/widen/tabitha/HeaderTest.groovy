@@ -1,7 +1,7 @@
 package com.widen.tabitha
 
 import com.widen.tabitha.reader.Header
-import spock.lang.*
+import spock.lang.Specification
 
 class HeaderTest extends Specification {
     def "build with duplicate column names"() {
@@ -32,10 +32,10 @@ class HeaderTest extends Specification {
     def "get columns by index"() {
         given:
         def header = new Header.Builder()
-                .add("foo")
-                .add("bar")
-                .add("baz")
-                .build()
+            .add("foo")
+            .add("bar")
+            .add("baz")
+            .build()
 
         expect:
         header.nameOf(0).get() == "foo"

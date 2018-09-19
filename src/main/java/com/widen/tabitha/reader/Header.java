@@ -1,6 +1,12 @@
 package com.widen.tabitha.reader;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * Defines an ordered list of named columns.
@@ -182,5 +188,7 @@ public class Header implements Iterable<String> {
     }
 
     @Override
-    public String toString() { return columnsByIndex.toString(); }
+    public String toString() {
+        return columnsByIndex.toString();
+    }
 }

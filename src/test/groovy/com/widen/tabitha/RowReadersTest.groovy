@@ -1,7 +1,7 @@
 package com.widen.tabitha
 
 import com.widen.tabitha.reader.RowReaders
-import spock.lang.*
+import spock.lang.Specification
 
 class RowReadersTest extends Specification {
     def "open a CSV file"() {
@@ -10,7 +10,7 @@ class RowReadersTest extends Specification {
         def reader = RowReaders.open(file)
 
         expect:
-        reader.isPresent()
+        !reader.isEmpty().blockingGet()
     }
 
     def "open a CSV stream"() {
@@ -19,7 +19,7 @@ class RowReadersTest extends Specification {
         def reader = RowReaders.open(stream)
 
         expect:
-        reader.isPresent()
+        !reader.isEmpty().blockingGet()
     }
 
     def "open an XLS file"() {
@@ -28,7 +28,7 @@ class RowReadersTest extends Specification {
         def reader = RowReaders.open(file)
 
         expect:
-        reader.isPresent()
+        !reader.isEmpty().blockingGet()
     }
 
     def "open an XLS stream"() {
@@ -37,7 +37,7 @@ class RowReadersTest extends Specification {
         def reader = RowReaders.open(stream)
 
         expect:
-        reader.isPresent()
+        !reader.isEmpty().blockingGet()
     }
 
     def "open an XLSX file"() {
@@ -46,7 +46,7 @@ class RowReadersTest extends Specification {
         def reader = RowReaders.open(file)
 
         expect:
-        reader.isPresent()
+        !reader.isEmpty().blockingGet()
     }
 
     def "open an XLSX stream"() {
@@ -55,6 +55,6 @@ class RowReadersTest extends Specification {
         def reader = RowReaders.open(stream)
 
         expect:
-        reader.isPresent()
+        !reader.isEmpty().blockingGet()
     }
 }

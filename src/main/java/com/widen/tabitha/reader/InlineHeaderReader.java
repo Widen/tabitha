@@ -8,12 +8,12 @@ import java.util.Optional;
 /**
  * Decorates another reader, interpreting the first row of each page of data as the header for subsequent rows.
  */
-class InlineHeaderReader implements RowReader {
+public class InlineHeaderReader implements RowReader {
     private final RowReader inner;
     private Header currentHeader;
     private long currentPage = -1;
 
-    InlineHeaderReader(RowReader inner) {
+    public InlineHeaderReader(RowReader inner) {
         this.inner = inner;
     }
 

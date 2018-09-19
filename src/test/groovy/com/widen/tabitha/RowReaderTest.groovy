@@ -2,7 +2,7 @@ package com.widen.tabitha
 
 import com.widen.tabitha.reader.Row
 import com.widen.tabitha.reader.RowReader
-import spock.lang.*
+import spock.lang.Specification
 
 class RowReaderTest extends Specification {
     def "empty reader"() {
