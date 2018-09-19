@@ -16,12 +16,11 @@ import org.apache.poi.hssf.record.RecordFactoryInputStream;
 import org.apache.poi.hssf.record.SSTRecord;
 import org.apache.poi.poifs.filesystem.POIFSFileSystem;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Optional;
 
 /**
@@ -45,12 +44,12 @@ public class XLSRowReader implements RowReader {
     /**
      * Open an XLS file from the file system.
      *
-     * @param file The file to open.
+     * @param path The path of the file to open.
      * @param options Options to pass to the reader.
      * @return A new row reader.
      */
-    public static XLSRowReader open(File file, ReaderOptions options) throws IOException {
-        return new XLSRowReader(new POIFSFileSystem(file), options);
+    public static XLSRowReader open(Path path, ReaderOptions options) throws IOException {
+        return new XLSRowReader(new POIFSFileSystem(path.toFile()), options);
     }
 
     /**

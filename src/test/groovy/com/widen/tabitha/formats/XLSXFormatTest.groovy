@@ -10,7 +10,7 @@ import java.nio.file.Path
 class XLSXFormatTest extends BaseFormatTest {
     @Override
     RowReader createReader(Path path) {
-        return XLSXRowReader.open(path.toFile(), null)
+        return XLSXRowReader.open(path, null)
     }
 
     @Override
@@ -20,6 +20,6 @@ class XLSXFormatTest extends BaseFormatTest {
 
     @Override
     RowWriter createWriter(Path path) {
-        return WorkbookRowWriter.xlsx(path.toFile())
+        return WorkbookRowWriter.xlsx(path)
     }
 }

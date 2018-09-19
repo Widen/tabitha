@@ -2,13 +2,13 @@ package com.widen.tabitha.formats
 
 import com.widen.tabitha.Helpers
 import com.widen.tabitha.reader.ReaderOptions
-import com.widen.tabitha.reader.RowReaderFactory
+import com.widen.tabitha.reader.RowReaders
 import spock.lang.Specification
 
 class HiddenRowsTest extends Specification {
     def "Hidden rows are ignored"() {
         setup:
-        def reader = RowReaderFactory.open(
+        def reader = RowReaders.open(
                 Helpers.getResourceStream(file),
                 new ReaderOptions().withIncludeHiddenRows(false)
         ).get()
@@ -24,7 +24,7 @@ class HiddenRowsTest extends Specification {
 
     def "Hidden rows are not ignored"() {
         setup:
-        def reader = RowReaderFactory.open(
+        def reader = RowReaders.open(
                 Helpers.getResourceStream(file),
                 new ReaderOptions().withIncludeHiddenRows(true)
         ).get()

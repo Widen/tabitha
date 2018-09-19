@@ -1,39 +1,38 @@
 package com.widen.tabitha.writer;
 
-import com.widen.tabitha.formats.delimited.DelimitedRowWriter;
 import com.widen.tabitha.formats.delimited.DelimitedFormat;
+import com.widen.tabitha.formats.delimited.DelimitedRowWriter;
 import com.widen.tabitha.formats.excel.WorkbookRowWriter;
-import com.widen.tabitha.writer.RowWriter;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * Helper factory methods for creating row writers.
  */
-public class RowWriterFactory {
+public class RowWriters {
     /**
      * Create a new row writer for the given file path and guess the output format based on the filename.
      *
+     * @param path The path to open.
      * @return A row writer for the given path.
      */
     public static RowWriter create(String path) throws IOException {
-        return create(new File(path));
+        return create(Paths.get(path));
     }
 
     /**
-     * Create a new row writer for the given output file and guess the output format based on the filename.
+     * Create a new row writer for the given file path and guess the output format based on the filename.
      *
+     * @param path The path to open.
      * @return A row writer for the given file.
      */
-    public static RowWriter create(File file) throws IOException {
-        OutputStream outputStream = FileUtils.openOutputStream(file);
-        String filename = file.getName();
-
-        return create(outputStream, filename);
+    public static RowWriter create(Path path) throws IOException {
+        return create(Files.newOutputStream(path), path.getFileName().toString());
     }
 
     /**

@@ -1,9 +1,9 @@
 package com.widen.tabitha.formats.excel;
 
+import com.widen.tabitha.Variant;
 import com.widen.tabitha.reader.ReaderOptions;
 import com.widen.tabitha.reader.Row;
 import com.widen.tabitha.reader.RowReader;
-import com.widen.tabitha.Variant;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.openxml4j.opc.OPCPackage;
@@ -15,9 +15,9 @@ import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import java.io.Closeable;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Optional;
@@ -37,13 +37,13 @@ public class XLSXRowReader implements RowReader {
     /**
      * Open an XLSX file from the file system.
      *
-     * @param file The file to open.
+     * @param path The path of the file to open.
      * @param options Options to pass to the reader.
      * @return A new row reader.
      */
-    public static XLSXRowReader open(File file, ReaderOptions options) throws IOException {
+    public static XLSXRowReader open(Path path, ReaderOptions options) throws IOException {
         try {
-            return new XLSXRowReader(OPCPackage.open(file), options);
+            return new XLSXRowReader(OPCPackage.open(path.toFile()), options);
         }
         catch (InvalidFormatException e) {
             throw new IOException(e);
@@ -53,7 +53,7 @@ public class XLSXRowReader implements RowReader {
     /**
      * Open an XLSX file from a stream.
      * <p>
-     * Note that this can use a great deal more memory than {@link #open(File, ReaderOptions)} as it will temporarily
+     * Note that this can use a great deal more memory than {@link #open(Path, ReaderOptions)} as it will temporarily
      * read the entire stream to memory in order to inspect the zip archive.
      *
      * @param inputStream The stream to open.

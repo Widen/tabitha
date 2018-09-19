@@ -7,16 +7,17 @@ import com.widen.tabitha.formats.excel.XLSXRowReader;
 import org.apache.tika.Tika;
 
 import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Optional;
 
 /**
  * Helper factory methods for creating row readers.
  */
-public class RowReaderFactory {
+public class RowReaders {
     /**
      * Attempt to detect the format of a file at the given path and open it as a row reader.
      *
@@ -24,47 +25,47 @@ public class RowReaderFactory {
      * @return A row reader if the file is in a supported format.
      */
     public static Optional<RowReader> open(String path) throws Exception {
-        return open(new File(path), null);
+        return open(Paths.get(path), null);
     }
 
     /**
-     * Attempt to detect the format of a file and open it as a row reader.
+     * Attempt to detect the format of a file at the given path and open it as a row reader.
      *
-     * @param file The file to open.
+     * @param path The file path of the file to open.
      * @return A row reader if the file is in a supported format.
      */
-    public static Optional<RowReader> open(File file) throws Exception {
-        return open(file, null);
+    public static Optional<RowReader> open(Path path) throws Exception {
+        return open(path, null);
     }
 
     /**
-     * Attempt to detect the format of a file and open it as a row reader.
+     * Attempt to detect the format of a file at the given path and open it as a row reader.
      *
-     * @param file The file to open.
+     * @param path The file path of the file to open.
      * @param options Options to pass to the reader.
      * @return A row reader if the file is in a supported format.
      */
-    public static Optional<RowReader> open(File file, ReaderOptions options) throws Exception {
+    public static Optional<RowReader> open(Path path, ReaderOptions options) throws Exception {
         if (options == null) {
             options = new ReaderOptions();
         }
 
-        String mimeType = tika.detect(file);
+        String mimeType = tika.detect(path);
 
         switch (mimeType) {
             case "text/csv":
             case "text/plain":
-                return Optional.of(decorate(new DelimitedRowReader(new FileInputStream(file), DelimitedFormat.CSV), options));
+                return Optional.of(decorate(new DelimitedRowReader(Files.newInputStream(path), DelimitedFormat.CSV), options));
 
             case "text/tab-separated-values":
-                return Optional.of(decorate(new DelimitedRowReader(new FileInputStream(file), DelimitedFormat.TSV), options));
+                return Optional.of(decorate(new DelimitedRowReader(Files.newInputStream(path), DelimitedFormat.TSV), options));
 
             case "application/vnd.ms-excel":
-                return Optional.of(decorate(XLSRowReader.open(file, options), options));
+                return Optional.of(decorate(XLSRowReader.open(path, options), options));
 
             case "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
             case "application/x-tika-ooxml":
-                return Optional.of(decorate(XLSXRowReader.open(file, options), options));
+                return Optional.of(decorate(XLSXRowReader.open(path, options), options));
         }
 
         return Optional.empty();

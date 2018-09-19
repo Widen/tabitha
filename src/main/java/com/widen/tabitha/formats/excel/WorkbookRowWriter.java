@@ -9,10 +9,10 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 
@@ -44,11 +44,11 @@ public class WorkbookRowWriter implements PagedWriter {
     /**
      * Create a new Excel XLSX row writer.
      *
-     * @param file The file to write to.
+     * @param path The path of the file to write to.
      * @return The new row writer.
      */
-    public static WorkbookRowWriter xlsx(File file) throws IOException {
-        return xlsx(new FileOutputStream(file));
+    public static WorkbookRowWriter xlsx(Path path) throws IOException {
+        return xlsx(Files.newOutputStream(path));
     }
 
     /**
@@ -64,11 +64,11 @@ public class WorkbookRowWriter implements PagedWriter {
     /**
      * Create a new Excel XLS row writer.
      *
-     * @param file The file to write to.
+     * @param path The path of the file to write to.
      * @return The new row writer.
      */
-    public static WorkbookRowWriter xls(File file) throws IOException {
-        return xls(new FileOutputStream(file));
+    public static WorkbookRowWriter xls(Path path) throws IOException {
+        return xls(Files.newOutputStream(path));
     }
 
     protected WorkbookRowWriter(Workbook workbook, OutputStream output) {
