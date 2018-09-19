@@ -6,6 +6,7 @@ import com.widen.tabitha.formats.excel.XLSRowReader;
 import com.widen.tabitha.formats.excel.XLSXRowReader;
 import org.apache.tika.Tika;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -118,6 +119,9 @@ public class RowReaderFactory {
             options = new ReaderOptions();
         }
 
+        // If our input stream supports marks, Tika will rewind the stream back to the start for us after detecting the
+        // format, so ensure our input stream supports it.
+        inputStream = createRewindableInputStream(inputStream);
         String mimeType = tika.detect(inputStream, filename);
 
         switch (mimeType) {
@@ -144,6 +148,10 @@ public class RowReaderFactory {
             reader = new InlineHeaderReader(reader);
         }
         return reader;
+    }
+
+    private static InputStream createRewindableInputStream(InputStream inputStream) {
+        return inputStream.markSupported() ? inputStream : new BufferedInputStream(inputStream);
     }
 
     // Apache Tika instance for detecting MIME types.
