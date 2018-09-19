@@ -1,4 +1,4 @@
-package com.widen.tabitha;
+package com.widen.tabitha.reader;
 
 import java.util.*;
 

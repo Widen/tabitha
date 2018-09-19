@@ -1,9 +1,10 @@
 package com.widen.tabitha.formats.excel;
 
-import com.widen.tabitha.ReaderOptions;
-import com.widen.tabitha.Row;
-import com.widen.tabitha.RowReader;
+import com.widen.tabitha.reader.ReaderOptions;
+import com.widen.tabitha.reader.Row;
+import com.widen.tabitha.reader.RowReader;
 import com.widen.tabitha.Variant;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.openxml4j.opc.OPCPackage;
 import org.apache.poi.xssf.eventusermodel.ReadOnlySharedStringsTable;
@@ -24,12 +25,14 @@ import java.util.Optional;
 /**
  * Reads rows from an Office Open XML spreadsheet.
  */
+@Slf4j
 public class XLSXRowReader implements RowReader {
     private final ReaderOptions options;
     private final OPCPackage opcPackage;
     private final ReadOnlySharedStringsTable stringsTable;
     private final XSSFReader.SheetIterator sheetIterator;
     private SpreadsheetMLReader sheetReader;
+    private long currentSheetIndex = -1;
 
     /**
      * Open an XLSX file from the file system.
@@ -90,10 +93,10 @@ public class XLSXRowReader implements RowReader {
 
         try {
             while (sheetReader != null) {
-                Collection<Variant> values = sheetReader.read();
+                Row row = sheetReader.read();
 
-                if (values != null) {
-                    return Optional.of(Row.create(values));
+                if (row != null) {
+                    return Optional.of(row);
                 }
 
                 nextPage();
@@ -113,7 +116,7 @@ public class XLSXRowReader implements RowReader {
             sheetReader = null;
         }
 
-        opcPackage.close();
+        opcPackage.revert();
     }
 
     private boolean nextPage() throws IOException {
@@ -126,6 +129,7 @@ public class XLSXRowReader implements RowReader {
             InputStream inputStream = sheetIterator.next();
             try {
                 sheetReader = new SpreadsheetMLReader(inputStream);
+                currentSheetIndex++;
                 return true;
             }
             catch (XMLStreamException e) {
@@ -145,7 +149,8 @@ public class XLSXRowReader implements RowReader {
         private final InputStream inputStream;
         private final XMLStreamReader reader;
         private final StringBuilder valueBuilder = new StringBuilder();
-        private int cellColumn = 0;
+        private long rowIndex = 0;
+        private long cellColumn = 0;
 
         SpreadsheetMLReader(InputStream stream) throws XMLStreamException {
             inputStream = stream;
@@ -159,7 +164,7 @@ public class XLSXRowReader implements RowReader {
          * @return The cell values or null if no more rows exist.
          * @throws XMLStreamException Thrown if any XML error occurs.
          */
-        public Collection<Variant> read() throws XMLStreamException {
+        public Row read() throws XMLStreamException {
             while (reader.hasNext()) {
                 int event = reader.next();
 
@@ -170,7 +175,15 @@ public class XLSXRowReader implements RowReader {
                         continue;
                     }
 
-                    return parseRow();
+                    try {
+                        rowIndex = Long.parseLong(reader.getAttributeValue(null, "r"));
+                    }
+                    catch (NumberFormatException e) {
+                        log.debug("Row is missing an index number!");
+                        rowIndex++;
+                    }
+
+                    return new Row(null, currentSheetIndex, rowIndex - 1, parseRow());
                 }
             }
 
@@ -317,7 +330,7 @@ public class XLSXRowReader implements RowReader {
                         event = reader.next();
 
                         if (event == XMLStreamConstants.CHARACTERS) {
-                            stringBuilder.append(reader.getTextCharacters());
+                            stringBuilder.append(reader.getText());
                         }
                         else if (event == XMLStreamConstants.END_ELEMENT && elementMatches("t")) {
                             break;

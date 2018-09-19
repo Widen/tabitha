@@ -1,11 +1,9 @@
-package com.widen.tabitha;
+package com.widen.tabitha.reader;
 
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 import lombok.SneakyThrows;
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -20,7 +18,7 @@ import java.util.stream.Stream;
  * A data source stores rows in a sequential order, grouped into one or more pages. Pages are ordered sequentially and
  * rows are always read from the current page.
  */
-public interface RowReader extends Iterable<Row>, Publisher<Row>, Closeable {
+public interface RowReader extends Iterable<Row>, Closeable {
     /**
      * A row reader that produces no rows.
      * <p>
@@ -125,46 +123,31 @@ public interface RowReader extends Iterable<Row>, Publisher<Row>, Closeable {
      * @return A reactive stream of rows.
      */
     default Flowable<Row> rows() {
-        return Flowable.generate(
-            () -> this,
-            (reader, emitter) -> {
-                try {
-                    Optional<Row> row = reader.read();
-                    if (row.isPresent()) {
-                        emitter.onNext(row.get());
+        return Flowable.
+            <Row, RowReader>generate(
+                () -> this,
+                (reader, emitter) -> {
+                    try {
+                        Optional<Row> row = reader.read();
+                        if (row.isPresent()) {
+                            emitter.onNext(row.get());
+                        }
+                        else {
+                            emitter.onComplete();
+                        }
                     }
-                    else {
-                        emitter.onComplete();
+                    catch (IOException e) {
+                        emitter.onError(e);
                     }
-                }
-                catch (IOException e) {
-                    emitter.onError(e);
-                }
-            },
-            RowReader::close
-        );
-    }
-
-    /**
-     * Pipe all remaining rows in this reader into a writer.
-     *
-     * @param rowWriter A row writer to write all rows to.
-     * @throws IOException Thrown if an I/O error occurs.
-     */
-    default void pipe(RowWriter rowWriter) throws IOException {
-        for (Row row : this) {
-            rowWriter.write(row);
-        }
+                },
+                RowReader::close
+            )
+            .onBackpressureBuffer();
     }
 
     @Override
     default Iterator<Row> iterator() {
         return rows().blockingIterable().iterator();
-    }
-
-    @Override
-    default void subscribe(Subscriber<? super Row> subscriber) {
-        rows().subscribe(subscriber);
     }
 
     // Provide a default close method that does nothing.

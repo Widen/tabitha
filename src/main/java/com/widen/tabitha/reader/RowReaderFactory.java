@@ -1,4 +1,4 @@
-package com.widen.tabitha;
+package com.widen.tabitha.reader;
 
 import com.widen.tabitha.formats.delimited.DelimitedFormat;
 import com.widen.tabitha.formats.delimited.DelimitedRowReader;

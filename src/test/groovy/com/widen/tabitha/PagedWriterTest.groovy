@@ -1,6 +1,7 @@
 package com.widen.tabitha
 
-import spock.lang.*
+import com.widen.tabitha.writer.PagedWriter
+import spock.lang.Specification
 
 class PagedWriterTest extends Specification {
     def partitioned() {
@@ -13,7 +14,7 @@ class PagedWriterTest extends Specification {
 
         when:
         301.times {
-            writer.write(Mock(Row.class))
+            writer.write([Variant.from("hello")])
         }
 
         then:

@@ -1,19 +1,19 @@
 package com.widen.tabitha.formats.delimited;
 
 import com.opencsv.CSVWriter;
-import com.widen.tabitha.*;
+import com.widen.tabitha.Variant;
+import com.widen.tabitha.writer.RowWriter;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.util.Arrays;
+import java.util.List;
 
 /**
  * Writes rows of values to a delimiter-separated text file.
  */
 public class DelimitedRowWriter implements RowWriter {
     private CSVWriter writer;
-    private boolean headersWritten = false;
 
     public DelimitedRowWriter(OutputStream outputStream, DelimitedFormat format) {
         this.writer = new CSVWriter(
@@ -25,15 +25,14 @@ public class DelimitedRowWriter implements RowWriter {
     }
 
     @Override
-    public void write(Row row) throws IOException {
-        if (!headersWritten) {
-            row.header().ifPresent(header -> writer.writeNext(header.toArray()));
-            headersWritten = true;
-        }
+    public void write(List<Variant> cells) {
+        String[] cols = cells
+            .stream()
+            .map(Object::toString)
+            .map(String.class::cast)
+            .toArray(String[]::new);
 
-        String[] cells = row.cells().map(Variant::toString).toArray(String[]::new);
-
-        writer.writeNext(cells);
+        writer.writeNext(cols);
     }
 
     @Override

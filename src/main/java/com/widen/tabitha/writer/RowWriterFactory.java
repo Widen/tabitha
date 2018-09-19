@@ -1,8 +1,9 @@
-package com.widen.tabitha;
+package com.widen.tabitha.writer;
 
 import com.widen.tabitha.formats.delimited.DelimitedRowWriter;
 import com.widen.tabitha.formats.delimited.DelimitedFormat;
 import com.widen.tabitha.formats.excel.WorkbookRowWriter;
+import com.widen.tabitha.writer.RowWriter;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 

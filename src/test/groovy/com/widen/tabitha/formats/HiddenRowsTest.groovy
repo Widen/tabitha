@@ -1,8 +1,8 @@
 package com.widen.tabitha.formats
 
 import com.widen.tabitha.Helpers
-import com.widen.tabitha.ReaderOptions
-import com.widen.tabitha.RowReaderFactory
+import com.widen.tabitha.reader.ReaderOptions
+import com.widen.tabitha.reader.RowReaderFactory
 import spock.lang.Specification
 
 class HiddenRowsTest extends Specification {

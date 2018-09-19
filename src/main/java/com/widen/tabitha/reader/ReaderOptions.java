@@ -1,5 +1,6 @@
-package com.widen.tabitha;
+package com.widen.tabitha.reader;
 
+import com.widen.tabitha.Variant;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.experimental.Wither;

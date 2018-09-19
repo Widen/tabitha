@@ -1,6 +1,9 @@
-package com.widen.tabitha;
+package com.widen.tabitha.writer;
+
+import com.widen.tabitha.Variant;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * Extension of the {@link RowWriter} interface for writers that support multiple pages of data.
@@ -40,13 +43,13 @@ public interface PagedWriter extends RowWriter {
             private int currentSize = 0;
 
             @Override
-            public void write(Row row) throws IOException {
+            public void write(List<Variant> cells) throws IOException {
                 if (currentSize >= size) {
                     PagedWriter.this.beginPage();
                     currentSize = 0;
                 }
 
-                PagedWriter.this.write(row);
+                PagedWriter.this.write(cells);
                 ++currentSize;
             }
 
