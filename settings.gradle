@@ -1,4 +1,7 @@
+include 'examples'
 include 'runner'
 
 rootProject.name = 'tabitha'
-project(':runner').name = 'tabitha-runner'
+rootProject.children.each {
+    it.name = rootProject.name + "-" + it.name
+}

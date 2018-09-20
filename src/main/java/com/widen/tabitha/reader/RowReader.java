@@ -1,8 +1,10 @@
 package com.widen.tabitha.reader;
 
+import io.reactivex.BackpressureStrategy;
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
 import lombok.SneakyThrows;
 
 import java.io.Closeable;
@@ -123,26 +125,23 @@ public interface RowReader extends Iterable<Row>, Closeable {
      * @return A reactive stream of rows.
      */
     default Flowable<Row> rows() {
-        return Flowable.
-            <Row, RowReader>generate(
-                () -> this,
-                (reader, emitter) -> {
-                    try {
-                        Optional<Row> row = reader.read();
-                        if (row.isPresent()) {
-                            emitter.onNext(row.get());
-                        }
-                        else {
-                            emitter.onComplete();
-                        }
+        return Observable.
+            <Row, RowReader>generate(() -> this, (reader, emitter) -> {
+                try {
+                    Optional<Row> row = reader.read();
+                    if (row.isPresent()) {
+                        emitter.onNext(row.get());
                     }
-                    catch (IOException e) {
-                        emitter.onError(e);
+                    else {
+                        emitter.onComplete();
                     }
-                },
-                RowReader::close
-            )
-            .onBackpressureBuffer();
+                }
+                catch (IOException e) {
+                    emitter.onError(e);
+                }
+            })
+            .toFlowable(BackpressureStrategy.BUFFER)
+            .share();
     }
 
     @Override

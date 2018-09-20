@@ -7,7 +7,9 @@ import org.apache.commons.collections4.iterators.ArrayIterator;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -72,8 +74,8 @@ public class Row implements Iterable<Variant> {
      *
      * @return The cell values.
      */
-    public Stream<Variant> cells() {
-        return Arrays.stream(cells);
+    public List<Variant> cells() {
+        return Collections.unmodifiableList(Arrays.asList(cells));
     }
 
     /**
@@ -109,8 +111,8 @@ public class Row implements Iterable<Variant> {
      * @param end The ending index, exclusive.
      * @return The selected cell values.
      */
-    public Stream<Variant> range(int start, int end) {
-        return cells().skip(start).limit(end - start);
+    public List<Variant> range(int start, int end) {
+        return cells().subList(start, end);
     }
 
     /**

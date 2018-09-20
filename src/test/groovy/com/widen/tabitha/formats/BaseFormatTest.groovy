@@ -9,8 +9,6 @@ import spock.lang.Specification
 import java.nio.file.Files
 import java.nio.file.Path
 
-import static java.util.stream.Collectors.toList
-
 /**
  * A base class for creating tests to prove the correctness of reading a specific format.
  */
@@ -103,7 +101,7 @@ abstract class BaseFormatTest extends Specification {
         return reader
             .rows()
             .groupBy({ Row row -> row.page() })
-            .flatMap({ it.map { Row row -> row.cells().collect(toList()) }.toList().toFlowable() })
+            .flatMap({ it.map { Row row -> row.cells() }.toList().toFlowable() })
             .toList()
             .blockingGet()
     }
