@@ -1,9 +1,9 @@
 package com.widen.tabitha.formats
 
 import com.widen.tabitha.Variant
+import com.widen.tabitha.reader.ReaderOptions
 import com.widen.tabitha.reader.Row
 import com.widen.tabitha.reader.RowReader
-import com.widen.tabitha.writer.RowWriter
 import spock.lang.Specification
 
 import java.nio.file.Files
@@ -13,18 +13,16 @@ import java.nio.file.Path
  * A base class for creating tests to prove the correctness of reading a specific format.
  */
 abstract class BaseFormatTest extends Specification {
-    abstract RowReader createReader(Path path)
+    static options = new ReaderOptions().withInlineHeaders(false)
 
-    abstract RowReader createReader(InputStream inputStream)
-
-    abstract RowWriter createWriter(Path path)
+    abstract FormatAdapter getAdapter()
 
     def "Can read from file"() {
         setup:
         def file = fixture([])
 
         when:
-        def reader = createReader(file)
+        def reader = adapter.createReader(file, options)
 
         then:
         reader != null
@@ -39,7 +37,7 @@ abstract class BaseFormatTest extends Specification {
         def file = fixture([])
 
         when:
-        def reader = createReader(file.newInputStream())
+        def reader = adapter.createReader(file.newInputStream(), options)
 
         then:
         reader != null
@@ -60,7 +58,7 @@ abstract class BaseFormatTest extends Specification {
             ]
         ])
         def file = fixture(expectedData)
-        def reader = createReader(file)
+        def reader = adapter.createReader(file, options)
 
         when:
         def actualData = readAllData(reader)
@@ -76,7 +74,7 @@ abstract class BaseFormatTest extends Specification {
     private Path fixture(List<List<List<Variant>>> pages) {
         def path = Files.createTempFile(null, null)
 
-        createWriter(path).withCloseable { writer ->
+        adapter.createWriter(path).withCloseable { writer ->
             pages.each { rows ->
                 rows.each { cells ->
                     writer.write(cells)
