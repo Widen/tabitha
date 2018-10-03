@@ -11,7 +11,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
 
-public class CSVAdapter implements ReaderPlugin, WriterPlugin {
+public class CSVPlugin implements ReaderPlugin, WriterPlugin {
     @Override
     public boolean supportsFormat(String mimeType) {
         return Arrays.asList(

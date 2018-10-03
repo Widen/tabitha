@@ -10,7 +10,7 @@ import com.widen.tabitha.writer.RowWriter;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-public class TSVAdapter implements ReaderPlugin, WriterPlugin {
+public class TSVPlugin implements ReaderPlugin, WriterPlugin {
     @Override
     public boolean supportsFormat(String mimeType) {
         return "text/tab-separated-values".equals(mimeType);

@@ -11,31 +11,27 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Path;
-import java.util.stream.Stream;
 
-public class XLSXAdapter implements ReaderPlugin, WriterPlugin {
+public class XLSPlugin implements ReaderPlugin, WriterPlugin {
     @Override
     public boolean supportsFormat(String mimeType) {
-        return Stream.of(
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            "application/x-tika-ooxml"
-        ).anyMatch(s -> s.equals(mimeType));
+        return "application/vnd.ms-excel".equals(mimeType);
     }
 
     @Override
     public RowReader createReader(Path path, ReaderOptions options) throws IOException {
         return InlineHeaderReader
-            .decorate(XLSXRowReader.open(path, options), options);
+            .decorate(XLSRowReader.open(path, options), options);
     }
 
     @Override
     public RowReader createReader(InputStream inputStream, ReaderOptions options) throws IOException {
         return InlineHeaderReader
-            .decorate(XLSXRowReader.open(inputStream, options), options);
+            .decorate(XLSRowReader.open(inputStream, options), options);
     }
 
     @Override
     public RowWriter createWriter(OutputStream outputStream) {
-        return WorkbookRowWriter.xlsx(outputStream);
+        return WorkbookRowWriter.xls(outputStream);
     }
 }
