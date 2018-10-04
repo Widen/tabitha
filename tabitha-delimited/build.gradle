@@ -1,0 +1,4 @@
+dependencies {
+    compile project(':tabitha-core')
+    compile 'com.opencsv:opencsv:3.8'
+}

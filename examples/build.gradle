@@ -1,4 +1,6 @@
+bintrayUpload.enabled = false
+
 dependencies {
-    compile project(':')
+    compile project(':tabitha-core')
     compile 'org.codehaus.groovy:groovy-all:2.4.9'
 }

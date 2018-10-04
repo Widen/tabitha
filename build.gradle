@@ -1,22 +1,39 @@
 plugins {
-    id 'signing'
-    id 'com.jfrog.bintray' version '1.8.1'
+    id 'com.jfrog.bintray' version '1.8.1' apply false
     id 'com.widen.versioning' version '0.3.3'
-    id 'net.ltgt.apt' version '0.10'
 }
 
-allprojects {
+subprojects {
     apply plugin: 'groovy'
     apply plugin: 'java'
     apply plugin: 'maven-publish'
+    apply plugin: 'signing'
+    apply plugin: 'com.jfrog.bintray'
+    apply plugin: 'com.widen.versioning'
 
-    group = 'com.widen.oss'
+    group = 'com.widen'
+    ext.url = 'https://github.com/Widen/tabitha'
+    ext.repo = 'https://github.com/Widen/tabitha.git'
 
     sourceCompatibility = 1.8
     targetCompatibility = 1.8
 
     repositories {
         jcenter()
+    }
+
+    dependencies {
+        compileOnly 'org.projectlombok:lombok:1.18.2'
+        annotationProcessor 'org.projectlombok:lombok:1.18.2'
+
+        compileOnly 'org.atteo.classindex:classindex:3.4'
+        annotationProcessor 'org.atteo.classindex:classindex:3.4'
+
+        testCompile 'cglib:cglib-nodep:3.2.5'
+        testCompile 'org.codehaus.groovy:groovy-all:2.4.9'
+        testCompile 'org.objenesis:objenesis:2.6'
+        testCompile 'org.slf4j:slf4j-simple:1.7.25'
+        testCompile 'org.spockframework:spock-core:1.1-groovy-2.4'
     }
 
     bintray {
@@ -33,83 +50,59 @@ allprojects {
         from javadoc
         classifier 'javadoc'
     }
-}
 
-description = 'Tabular data reading, writing, and processing library'
-ext.url = 'https://github.com/Widen/tabitha'
-ext.repo = 'https://github.com/Widen/tabitha.git'
-
-dependencies {
-    compile 'com.opencsv:opencsv:3.8'
-    compile 'commons-collections:commons-collections:3.2.1'
-    compile 'commons-io:commons-io:2.5'
-    compile 'io.reactivex.rxjava2:rxjava:2.2.2'
-    compile 'org.apache.poi:poi:3.15'
-    compile 'org.apache.poi:poi-ooxml:3.15'
-    compile 'org.apache.poi:ooxml-schemas:1.3'
-    compile 'org.apache.tika:tika-core:1.15'
-    compile 'org.slf4j:slf4j-api:1.7.25'
-    compileOnly 'org.projectlombok:lombok:1.18.2'
-
-    apt 'org.projectlombok:lombok:1.18.2'
-
-    testCompile 'cglib:cglib-nodep:3.2.5'
-    testCompile 'org.codehaus.groovy:groovy-all:2.4.9'
-    testCompile 'org.objenesis:objenesis:2.6'
-    testCompile 'org.spockframework:spock-core:1.1-groovy-2.4'
-}
-
-bintray {
-    publications = ['maven']
-    pkg {
-        repo = 'oss'
-        name = project.name
-        userOrg = 'widen'
-        publish = true
-        version {
-            name = project.version
+    bintray {
+        publications = ['maven']
+        pkg {
+            repo = 'oss'
+            name = project.name
+            userOrg = 'widen'
+            publish = true
+            version {
+                name = project.version
+            }
         }
     }
-}
 
-bintrayUpload.doFirst {
-    bintrayUpload.versionName = project.version
-}
+    bintrayUpload.doFirst {
+        bintrayUpload.versionName = project.version
+    }
 
-publishing {
-    publications {
-        maven(MavenPublication) {
-            from components.java
-            artifact sourcesJar
-            artifact javadocJar
-            pom {
-                name = project.name
-                description = project.description
-                url = project.ext.url
-                licenses {
-                    license {
-                        name = 'The MIT License'
-                        url = 'https://opensource.org/licenses/MIT'
-                        distribution = 'repo'
+    publishing {
+        publications {
+            maven(MavenPublication) {
+                from components.java
+                artifact sourcesJar
+                artifact javadocJar
+                pom {
+                    name = project.name
+                    description = project.description
+                    url = project.ext.url
+                    licenses {
+                        license {
+                            name = 'The MIT License'
+                            url = 'https://opensource.org/licenses/MIT'
+                            distribution = 'repo'
+                        }
                     }
-                }
-                developers {
-                    developer {
-                        id = 'scoakley'
-                        name = 'Stephen Coakley'
-                        email = 'scoakley@widen.com'
+                    developers {
+                        developer {
+                            id = 'scoakley'
+                            name = 'Stephen Coakley'
+                            email = 'scoakley@widen.com'
+                        }
                     }
-                }
-                scm {
-                    url = project.ext.repo
-                    connection = 'scm:git@github.com:Widen/tabitha.git'
-                    developerConnection = 'scm:git@github.com:Widen/tabitha.git'
+                    scm {
+                        url = project.ext.repo
+                        connection = 'scm:git@github.com:Widen/tabitha.git'
+                        developerConnection = 'scm:git@github.com:Widen/tabitha.git'
+                    }
                 }
             }
         }
     }
-}
 
-signing {
-    sign publishing.publications.maven
+    signing {
+        sign publishing.publications.maven
+    }
 }
