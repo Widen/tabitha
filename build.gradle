@@ -1,5 +1,5 @@
 plugins {
-    id 'com.jfrog.bintray' version '1.8.1' apply false
+    id 'com.jfrog.bintray' version '1.8.4' apply false
     id 'com.widen.versioning' version '0.3.3'
 }
 
@@ -12,8 +12,7 @@ subprojects {
     apply plugin: 'com.widen.versioning'
 
     group = 'com.widen'
-    ext.url = 'https://github.com/Widen/tabitha'
-    ext.repo = 'https://github.com/Widen/tabitha.git'
+    ext.repo = 'https://github.com/Widen/tabitha'
 
     sourceCompatibility = 1.8
     targetCompatibility = 1.8
@@ -53,13 +52,23 @@ subprojects {
 
     bintray {
         publications = ['maven']
+        publish = true
+        dryRun = true
         pkg {
             repo = 'oss'
             name = project.name
             userOrg = 'widen'
-            publish = true
+            desc = project.description
+            websiteUrl = project.ext.repo
+            issueTrackerUrl = project.ext.repo + '/issues'
+            vcsUrl = project.ext.repo + '.git'
+            licenses = ['MIT']
+            publicDownloadNumbers = true
             version {
                 name = project.version
+                gpg {
+                    sign = true
+                }
             }
         }
     }
@@ -77,7 +86,7 @@ subprojects {
                 pom {
                     name = project.name
                     description = project.description
-                    url = project.ext.url
+                    url = project.ext.repo
                     licenses {
                         license {
                             name = 'The MIT License'
@@ -93,16 +102,12 @@ subprojects {
                         }
                     }
                     scm {
-                        url = project.ext.repo
+                        url = project.ext.repo + '.git'
                         connection = 'scm:git@github.com:Widen/tabitha.git'
                         developerConnection = 'scm:git@github.com:Widen/tabitha.git'
                     }
                 }
             }
         }
-    }
-
-    signing {
-        sign publishing.publications.maven
     }
 }
