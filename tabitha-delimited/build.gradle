@@ -1,3 +1,5 @@
+description = 'Tabitha support for delimiter-based formats'
+
 dependencies {
     compile project(':tabitha-core')
     compile 'com.opencsv:opencsv:3.8'

@@ -1,3 +1,5 @@
+description = 'Tabitha support for Excel formats'
+
 dependencies {
     compile project(':tabitha-core')
     compile 'org.apache.poi:ooxml-schemas:1.3'
