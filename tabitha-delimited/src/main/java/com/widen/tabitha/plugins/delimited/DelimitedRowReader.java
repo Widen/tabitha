@@ -35,17 +35,14 @@ public class DelimitedRowReader implements RowReader {
         return Optional
             .ofNullable(reader.readNext())
             .map(cells -> new Row(
-                null,
                 0,
                 currentIndex++,
-                Arrays.stream(cells)
-                    .map(cell -> {
-                        if (StringUtils.isNotBlank(cell)) {
-                            return new Variant.String(cell);
-                        }
-                        return Variant.NONE;
-                    })
-                    .toArray(Variant[]::new)
+                Arrays.stream(cells).map(cell -> {
+                    if (StringUtils.isNotBlank(cell)) {
+                        return new Variant.String(cell);
+                    }
+                    return Variant.NONE;
+                })
             ));
     }
 

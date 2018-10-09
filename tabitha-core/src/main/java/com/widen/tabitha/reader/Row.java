@@ -2,6 +2,7 @@ package com.widen.tabitha.reader;
 
 import com.widen.tabitha.Variant;
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.Wither;
 import org.apache.commons.collections4.iterators.ArrayIterator;
 
@@ -23,14 +24,24 @@ import java.util.stream.Stream;
  */
 @Wither
 @AllArgsConstructor
+@EqualsAndHashCode
 public class Row implements Iterable<Variant> {
     private final Header header;
-    private final long page;
+    private final String pageName;
+    private final long pageIndex;
     private final long index;
     private final Variant[] cells;
 
-    public Row(Header header, long page, long index, Collection<Variant> cells) {
-        this(header, page, index, cells.toArray(new Variant[0]));
+    public Row(long pageIndex, long index, Stream<Variant> cells) {
+        this(pageIndex, index, cells.toArray(Variant[]::new));
+    }
+
+    public Row(long pageIndex, long index, Collection<Variant> cells) {
+        this(pageIndex, index, cells.toArray(new Variant[0]));
+    }
+
+    public Row(long pageIndex, long index, Variant[] cells) {
+        this(null, null, pageIndex, index, cells);
     }
 
     /**
@@ -52,21 +63,30 @@ public class Row implements Iterable<Variant> {
     }
 
     /**
-     * Get the page number this row was found in. Page numbers start from index 0.
-     *
-     * @return The row index.
-     */
-    public long page() {
-        return page;
-    }
-
-    /**
      * Get the index of the row in the source file. Rows start from index 0.
      *
      * @return The row index.
      */
     public long index() {
         return index;
+    }
+
+    /**
+     * Get the page name this row was found in.
+     *
+     * @return The page name.
+     */
+    public Optional<String> pageName() {
+        return Optional.ofNullable(pageName);
+    }
+
+    /**
+     * Get the page index this row was found in. Page numbers start from index 0.
+     *
+     * @return The page index.
+     */
+    public long pageIndex() {
+        return pageIndex;
     }
 
     /**

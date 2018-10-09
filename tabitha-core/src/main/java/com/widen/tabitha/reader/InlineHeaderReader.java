@@ -33,7 +33,7 @@ public class InlineHeaderReader implements RowReader {
                 return Optional.empty();
             }
 
-            long page = row.get().page();
+            long page = row.get().pageIndex();
 
             if (page != currentPage) {
                 currentHeader = null;

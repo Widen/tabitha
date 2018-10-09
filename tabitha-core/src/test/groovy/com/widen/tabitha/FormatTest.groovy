@@ -108,7 +108,7 @@ class FormatTest extends Specification {
     private static List<List<List<Variant>>> readAllData(RowReader reader) {
         return reader
             .rows()
-            .groupBy({ Row row -> row.page() })
+            .groupBy({ Row row -> row.pageIndex() })
             .flatMap({ it.map { Row row -> row.cells() }.toList().toFlowable() })
             .toList()
             .blockingGet()

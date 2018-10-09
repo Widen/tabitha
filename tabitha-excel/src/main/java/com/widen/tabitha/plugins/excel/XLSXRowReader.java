@@ -33,6 +33,7 @@ public class XLSXRowReader implements RowReader {
     private final XSSFReader.SheetIterator sheetIterator;
     private SpreadsheetMLReader sheetReader;
     private long currentSheetIndex = -1;
+    private String currentSheetName;
 
     /**
      * Open an XLSX file from the file system.
@@ -130,6 +131,7 @@ public class XLSXRowReader implements RowReader {
             try {
                 sheetReader = new SpreadsheetMLReader(inputStream);
                 currentSheetIndex++;
+                currentSheetName = sheetIterator.getSheetName();
                 return true;
             }
             catch (XMLStreamException e) {
@@ -183,7 +185,8 @@ public class XLSXRowReader implements RowReader {
                         rowIndex++;
                     }
 
-                    return new Row(null, currentSheetIndex, rowIndex - 1, parseRow());
+                    return new Row(currentSheetIndex, rowIndex - 1, parseRow())
+                        .withPageName(currentSheetName);
                 }
             }
 

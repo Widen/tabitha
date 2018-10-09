@@ -2,5 +2,8 @@ bintrayUpload.enabled = false
 
 dependencies {
     compile project(':tabitha-core')
+    compile project(':tabitha-delimited')
+    compile project(':tabitha-excel')
     compile 'org.codehaus.groovy:groovy-all:2.4.9'
+    compile 'org.slf4j:slf4j-simple:1.7.25'
 }
