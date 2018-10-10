@@ -19,7 +19,7 @@ public class XLSXPlugin implements ReaderPlugin, WriterPlugin {
         return Stream.of(
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             "application/x-tika-ooxml"
-        ).anyMatch(s -> s.equals(mimeType));
+        ).anyMatch(mimeType::equals);
     }
 
     @Override
