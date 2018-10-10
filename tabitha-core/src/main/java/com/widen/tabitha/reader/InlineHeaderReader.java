@@ -20,7 +20,7 @@ public class InlineHeaderReader implements RowReader {
         return reader;
     }
 
-    public InlineHeaderReader(RowReader inner) {
+    private InlineHeaderReader(RowReader inner) {
         this.inner = inner;
     }
 
@@ -46,7 +46,7 @@ public class InlineHeaderReader implements RowReader {
                 continue;
             }
 
-            return row.map(r -> r.withHeader(currentHeader).withIndex(r.index() - 1));
+            return row.map(r -> r.withHeader(currentHeader));
         }
     }
 

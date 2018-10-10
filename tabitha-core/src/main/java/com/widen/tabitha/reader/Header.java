@@ -1,5 +1,7 @@
 package com.widen.tabitha.reader;
 
+import lombok.EqualsAndHashCode;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -11,6 +13,7 @@ import java.util.Optional;
 /**
  * Defines an ordered list of named columns.
  */
+@EqualsAndHashCode
 public class Header implements Iterable<String> {
     // Ordered list of columns.
     private final List<String> columnsByIndex;

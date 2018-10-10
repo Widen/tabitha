@@ -119,6 +119,28 @@ public interface RowReader extends Iterable<Row>, Closeable {
     Optional<Row> read() throws IOException;
 
     /**
+     * Create a new row reader that emits rows from this reader with its indexes normalized to be sequential.
+     * <p>
+     * The page index and row index of each row emitted will be changed to be sequential. For example, if the inner row
+     * reader emits a row with indexes 0, 1, 2, and 5, the normalizer will change the indexes to be 0, 1, 2, and 3. The
+     * same normalizing is done on the page indexes. Data in the rows will not be changed.
+     *
+     * @return A new row reader.
+     */
+    default RowReader withSequentialIndexes() {
+        return new IndexNormalizerReader(this);
+    }
+
+    /**
+     * Create a new row reader that fills gaps between rows with blank rows.
+     *
+     * @return A new row reader.
+     */
+    default RowReader withBlankRows() {
+        return new BlankRowReader(this);
+    }
+
+    /**
      * Convert this reader into a reactive stream of rows.
      *
      * @return A reactive stream of rows.
