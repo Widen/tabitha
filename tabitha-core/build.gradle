@@ -1,4 +1,4 @@
-description = 'Tabular data reading, writing, and processing library'
+description = 'Tabular data reading, writing, and processing library.'
 
 dependencies {
     compile 'commons-io:commons-io:2.6'

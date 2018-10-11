@@ -1,4 +1,4 @@
-description = 'Tabitha support for newline-separated JSON'
+description = 'Tabitha plugins for line-separated JSON.'
 
 dependencies {
     compile project(':tabitha-core')

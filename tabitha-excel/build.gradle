@@ -1,4 +1,4 @@
-description = 'Tabitha support for Excel formats'
+description = 'Tabitha plugins for Excel formats.'
 
 dependencies {
     compile project(':tabitha-core')
