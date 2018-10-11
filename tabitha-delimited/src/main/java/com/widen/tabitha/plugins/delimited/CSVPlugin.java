@@ -9,15 +9,12 @@ import com.widen.tabitha.writer.RowWriter;
 
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Arrays;
+import java.util.stream.Stream;
 
 public class CSVPlugin implements ReaderPlugin, WriterPlugin {
     @Override
     public boolean supportsFormat(String mimeType) {
-        return Arrays.asList(
-            "text/csv",
-            "text/plain"
-        ).contains(mimeType);
+        return Stream.of("text/csv", "text/plain").anyMatch(mimeType::equals);
     }
 
     @Override

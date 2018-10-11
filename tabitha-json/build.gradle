@@ -1,0 +1,6 @@
+description = 'Tabitha support for newline-separated JSON'
+
+dependencies {
+    compile project(':tabitha-core')
+    compile 'com.google.code.gson:gson:2.8.5'
+}

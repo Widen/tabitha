@@ -5,9 +5,9 @@ import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Wither;
 import org.apache.commons.collections4.iterators.ArrayIterator;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -32,16 +32,21 @@ public class Row implements Iterable<Variant> {
     private final long index;
     private final Variant[] cells;
 
-    public Row(long pageIndex, long index, Stream<Variant> cells) {
-        this(pageIndex, index, cells.toArray(Variant[]::new));
+    public static Row fromPairs(long pageIndex, long index, Stream<Pair<String, Variant>> cells) {
+        Header.Builder header = Header.builder();
+
+        return fromStream(pageIndex, index, cells
+            .peek(pair -> header.add(pair.getLeft()))
+            .map(Pair::getRight))
+            .withHeader(header.build());
     }
 
-    public Row(long pageIndex, long index, Collection<Variant> cells) {
-        this(pageIndex, index, cells.toArray(new Variant[0]));
+    public static Row fromStream(long pageIndex, long index, Stream<Variant> cells) {
+        return fromArray(pageIndex, index, cells.toArray(Variant[]::new));
     }
 
-    public Row(long pageIndex, long index, Variant[] cells) {
-        this(null, null, pageIndex, index, cells);
+    public static Row fromArray(long pageIndex, long index, Variant[] cells) {
+        return new Row(null, null, pageIndex, index, cells);
     }
 
     /**
@@ -145,8 +150,7 @@ public class Row implements Iterable<Variant> {
      * @return The selected cell values.
      */
     public Stream<Variant> select(String... columns) {
-        return Arrays.stream(columns)
-            .map(column -> get(column).orElse(Variant.NONE));
+        return Arrays.stream(columns).map(column -> get(column).orElse(Variant.NONE));
     }
 
     /**

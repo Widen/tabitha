@@ -185,7 +185,7 @@ public class XLSXRowReader implements RowReader {
                         rowIndex++;
                     }
 
-                    return new Row(currentSheetIndex, rowIndex - 1, parseRow())
+                    return Row.fromStream(currentSheetIndex, rowIndex - 1, parseRow().stream())
                         .withPageName(currentSheetName);
                 }
             }

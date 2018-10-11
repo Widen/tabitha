@@ -151,7 +151,8 @@ public class XLSRowReader implements RowReader {
         }
 
         if (rowFound) {
-            return Optional.of(new Row(currentSheetIndex, currentRowIndex++, currentCells)
+            return Optional.of(Row
+                .fromStream(currentSheetIndex, currentRowIndex++, currentCells.stream())
                 .withPageName(currentSheet.getSheetname()));
         }
 

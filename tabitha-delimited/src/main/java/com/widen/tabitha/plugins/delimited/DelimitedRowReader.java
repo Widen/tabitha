@@ -34,10 +34,9 @@ public class DelimitedRowReader implements RowReader {
     public Optional<Row> read() throws IOException {
         return Optional
             .ofNullable(reader.readNext())
-            .map(cells -> new Row(
-                0,
-                currentIndex++,
-                Arrays.stream(cells).map(cell -> {
+            .map(cells -> Row.fromStream(0, currentIndex++, Arrays
+                .stream(cells)
+                .map(cell -> {
                     if (StringUtils.isNotBlank(cell)) {
                         return new Variant.String(cell);
                     }
