@@ -1,4 +1,4 @@
-description = 'Tabitha support for delimiter-based formats'
+description = 'Tabitha support for newline-separated JSON'
 
 dependencies {
     compile project(':tabitha-core')

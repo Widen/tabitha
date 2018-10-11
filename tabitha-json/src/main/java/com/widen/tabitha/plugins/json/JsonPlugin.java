@@ -11,7 +11,7 @@ import java.util.stream.Stream;
 public class JsonPlugin implements ReaderPlugin {
     @Override
     public boolean supportsFormat(String mimeType) {
-        return Stream.of("application/x-ndjson").anyMatch(mimeType::equals);
+        return Stream.of("application/json", "application/x-ndjson").anyMatch(mimeType::equals);
     }
 
     @Override
