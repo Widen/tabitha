@@ -9,6 +9,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 /**
  * Defines an ordered list of named columns.
@@ -20,6 +22,17 @@ public class Header implements Iterable<String> {
 
     // Maps the column name to the column index. Used for fast lookup of column index by name.
     private final Map<String, Integer> columnsByName;
+
+    /**
+     * Create a header from a row, treating each cell value as a column name.
+     *
+     * @param row The row to create from.
+     * @return The new header.
+     */
+    public static Header fromRow(Row row) {
+        return new Header(row.cells().stream()
+            .map(cell -> cell.isNone() ? null : cell.toString()));
+    }
 
     /**
      * Create a new header builder.
@@ -40,44 +53,51 @@ public class Header implements Iterable<String> {
      * @throws DuplicateColumnException Thrown if duplicate column names are found.
      */
     public static Header merge(Header... headers) {
-        Builder builder = new Builder();
-
-        for (Header header : headers) {
-            if (header != null) {
-                for (String column : header) {
-                    builder.add(column);
-                }
-            }
-        }
-
-        return builder.build();
+        return new Header(Arrays.stream(headers)
+            .flatMap(header -> header.columnsByIndex.stream()));
     }
 
     /**
      * Create a new column index with the given column names in order.
+     * <p>
+     * Null columns will be unnamed, but have their positions maintained.
      *
      * @param columns The column names.
      */
     public Header(String... columns) {
-        this(Arrays.asList(columns));
+        this(Arrays.stream(columns));
     }
 
     /**
      * Create a new column index with the given column names in order.
+     * <p>
+     * Null columns will be unnamed, but have their positions maintained.
      *
      * @param columns The column names.
      */
     public Header(Iterable<String> columns) {
+        this(StreamSupport.stream(columns.spliterator(), false));
+    }
+
+    /**
+     * Create a new column index with the given column names in order.
+     * <p>
+     * Null columns will be unnamed, but have their positions maintained.
+     *
+     * @param columns The column names.
+     */
+    public Header(Stream<String> columns) {
         columnsByIndex = new ArrayList<>();
         columnsByName = new HashMap<>();
 
-        for (String column : columns) {
+        columns.forEachOrdered(column -> {
+            columnsByIndex.add(column);
+
             if (column != null) {
                 column = column.intern();
-                columnsByName.put(column, columnsByIndex.size());
-                columnsByIndex.add(column);
+                columnsByName.put(column, columnsByIndex.size() - 1);
             }
-        }
+        });
     }
 
     /**
@@ -97,7 +117,7 @@ public class Header implements Iterable<String> {
      */
     public Optional<String> nameOf(int index) {
         if (index >= 0 && index < columnsByIndex.size()) {
-            return Optional.of(columnsByIndex.get(index));
+            return Optional.ofNullable(columnsByIndex.get(index));
         }
 
         return Optional.empty();
@@ -114,13 +134,7 @@ public class Header implements Iterable<String> {
             return Optional.empty();
         }
 
-        Integer index = columnsByName.get(name);
-
-        if (index != null) {
-            return Optional.of(index);
-        }
-
-        return Optional.empty();
+        return Optional.ofNullable(columnsByName.get(name));
     }
 
     /**

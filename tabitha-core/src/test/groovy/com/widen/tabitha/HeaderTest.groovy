@@ -4,7 +4,7 @@ import com.widen.tabitha.reader.Header
 import spock.lang.Specification
 
 class HeaderTest extends Specification {
-    def "build with duplicate column names"() {
+    def "Build with duplicate column names"() {
         given:
         def builder = new Header.Builder()
 
@@ -15,7 +15,7 @@ class HeaderTest extends Specification {
         thrown Header.DuplicateColumnException
     }
 
-    def "get columns by name"() {
+    def "Get columns by name"() {
         given:
         def header = new Header.Builder()
             .add("foo")
@@ -24,12 +24,12 @@ class HeaderTest extends Specification {
             .build()
 
         expect:
-        header.indexOf("foo").get() == 0
-        header.indexOf("bar").get() == 1
-        header.indexOf("baz").get() == 2
+        header.indexOf("foo") == Optional.of(0)
+        header.indexOf("bar") == Optional.of(1)
+        header.indexOf("baz") == Optional.of(2)
     }
 
-    def "get columns by index"() {
+    def "Get columns by index"() {
         given:
         def header = new Header.Builder()
             .add("foo")
@@ -38,8 +38,27 @@ class HeaderTest extends Specification {
             .build()
 
         expect:
-        header.nameOf(0).get() == "foo"
-        header.nameOf(1).get() == "bar"
-        header.nameOf(2).get() == "baz"
+        header.nameOf(0) == Optional.of("foo")
+        header.nameOf(1) == Optional.of("bar")
+        header.nameOf(2) == Optional.of("baz")
+    }
+
+    def "Unnamed columns"() {
+        given:
+        def header = new Header("a", "b", null, "c", null, null)
+
+        expect:
+        header.size() == 6
+
+        header.nameOf(0) == Optional.of("a")
+        header.nameOf(1) == Optional.of("b")
+        header.nameOf(2) == Optional.empty()
+        header.nameOf(3) == Optional.of("c")
+        header.nameOf(4) == Optional.empty()
+        header.nameOf(5) == Optional.empty()
+
+        header.indexOf("a") == Optional.of(0)
+        header.indexOf("b") == Optional.of(1)
+        header.indexOf("c") == Optional.of(3)
     }
 }
