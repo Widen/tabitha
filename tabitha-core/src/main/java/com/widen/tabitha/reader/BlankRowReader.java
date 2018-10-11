@@ -46,6 +46,6 @@ public class BlankRowReader implements RowReader {
         }
 
         // Return a blank "padding" row.
-        return Optional.of(new Row(pageIndex, index++, new Variant[0]));
+        return Optional.of(Row.fromArray(pageIndex, index++, new Variant[0]));
     }
 }
