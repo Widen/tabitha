@@ -57,21 +57,21 @@ class RowReaderTest extends Specification {
         setup:
         def reader = Spy(RowReader) {
             read() >>> [
-                Optional.of(new Row(0, 1, [])),
-                Optional.of(new Row(0, 2, [])),
-                Optional.of(new Row(0, 6, [])),
-                Optional.of(new Row(3, 0, [])),
-                Optional.of(new Row(3, 2, [])),
+                Optional.of(Row.blank(0, 1)),
+                Optional.of(Row.blank(0, 2)),
+                Optional.of(Row.blank(0, 6)),
+                Optional.of(Row.blank(3, 0)),
+                Optional.of(Row.blank(3, 2)),
                 Optional.empty(),
             ]
         }.withSequentialIndexes()
 
         expect:
-        reader.read() == Optional.of(new Row(0, 0, []))
-        reader.read() == Optional.of(new Row(0, 1, []))
-        reader.read() == Optional.of(new Row(0, 2, []))
-        reader.read() == Optional.of(new Row(1, 0, []))
-        reader.read() == Optional.of(new Row(1, 1, []))
+        reader.read() == Optional.of(Row.blank(0, 0))
+        reader.read() == Optional.of(Row.blank(0, 1))
+        reader.read() == Optional.of(Row.blank(0, 2))
+        reader.read() == Optional.of(Row.blank(1, 0))
+        reader.read() == Optional.of(Row.blank(1, 1))
         reader.read() == Optional.empty()
     }
 
@@ -79,26 +79,26 @@ class RowReaderTest extends Specification {
         setup:
         def reader = Spy(RowReader) {
             read() >>> [
-                Optional.of(new Row(0, 1, [])),
-                Optional.of(new Row(0, 2, [])),
-                Optional.of(new Row(0, 6, [])),
-                Optional.of(new Row(3, 0, [])),
-                Optional.of(new Row(3, 2, [])),
+                Optional.of(Row.blank(0, 1)),
+                Optional.of(Row.blank(0, 2)),
+                Optional.of(Row.blank(0, 6)),
+                Optional.of(Row.blank(3, 0)),
+                Optional.of(Row.blank(3, 2)),
                 Optional.empty(),
             ]
         }.withBlankRows()
 
         expect:
-        reader.read() == Optional.of(new Row(0, 0, []))
-        reader.read() == Optional.of(new Row(0, 1, []))
-        reader.read() == Optional.of(new Row(0, 2, []))
-        reader.read() == Optional.of(new Row(0, 3, []))
-        reader.read() == Optional.of(new Row(0, 4, []))
-        reader.read() == Optional.of(new Row(0, 5, []))
-        reader.read() == Optional.of(new Row(0, 6, []))
-        reader.read() == Optional.of(new Row(3, 0, []))
-        reader.read() == Optional.of(new Row(3, 1, []))
-        reader.read() == Optional.of(new Row(3, 2, []))
+        reader.read() == Optional.of(Row.blank(0, 0))
+        reader.read() == Optional.of(Row.blank(0, 1))
+        reader.read() == Optional.of(Row.blank(0, 2))
+        reader.read() == Optional.of(Row.blank(0, 3))
+        reader.read() == Optional.of(Row.blank(0, 4))
+        reader.read() == Optional.of(Row.blank(0, 5))
+        reader.read() == Optional.of(Row.blank(0, 6))
+        reader.read() == Optional.of(Row.blank(3, 0))
+        reader.read() == Optional.of(Row.blank(3, 1))
+        reader.read() == Optional.of(Row.blank(3, 2))
         reader.read() == Optional.empty()
     }
 }

@@ -32,6 +32,17 @@ public class Row implements Iterable<Variant> {
     private final long index;
     private final Variant[] cells;
 
+    /**
+     * Creates a new blank row.
+     *
+     * @param pageIndex The page index the row is located at.
+     * @param index The row index the row is located at.
+     * @return The new row.
+     */
+    public static Row blank(long pageIndex, long index) {
+        return fromArray(pageIndex, index, new Variant[0]);
+    }
+
     public static Row fromPairs(long pageIndex, long index, Stream<Pair<String, Variant>> cells) {
         Header.Builder header = Header.builder();
 

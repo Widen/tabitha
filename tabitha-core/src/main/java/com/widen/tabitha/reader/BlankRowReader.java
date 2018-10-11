@@ -1,7 +1,5 @@
 package com.widen.tabitha.reader;
 
-import com.widen.tabitha.Variant;
-
 import java.io.IOException;
 import java.util.Optional;
 
@@ -46,6 +44,6 @@ public class BlankRowReader implements RowReader {
         }
 
         // Return a blank "padding" row.
-        return Optional.of(Row.fromArray(pageIndex, index++, new Variant[0]));
+        return Optional.of(Row.blank(pageIndex, index++));
     }
 }
