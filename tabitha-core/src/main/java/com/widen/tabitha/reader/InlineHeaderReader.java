@@ -1,7 +1,5 @@
 package com.widen.tabitha.reader;
 
-import com.widen.tabitha.Variant;
-
 import java.io.IOException;
 import java.util.Optional;
 
@@ -42,21 +40,11 @@ public class InlineHeaderReader implements RowReader {
             currentPage = page;
 
             if (currentHeader == null) {
-                currentHeader = createHeaderFromRow(row.get());
+                currentHeader = Header.fromRow(row.get());
                 continue;
             }
 
             return row.map(r -> r.withHeader(currentHeader));
         }
-    }
-
-    private Header createHeaderFromRow(Row row) {
-        Header.Builder builder = Header.builder();
-
-        for (Variant value : row) {
-            builder.add(value.toString());
-        }
-
-        return builder.build();
     }
 }
