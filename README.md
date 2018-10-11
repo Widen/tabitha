@@ -1,7 +1,7 @@
 # Tabitha
 
 [![Build Status](https://img.shields.io/travis/Widen/tabitha.svg)](https://travis-ci.org/Widen/tabitha)
-[![Download](https://api.bintray.com/packages/widen/oss/tabitha/images/download.svg)](https://bintray.com/widen/oss/tabitha/_latestVersion)
+[![Download](https://api.bintray.com/packages/widen/oss/tabitha-core/images/download.svg)](https://bintray.com/widen/oss/tabitha-core/_latestVersion)
 
 Tabular data reading, writing, and processing library for JVM languages.
 
