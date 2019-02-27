@@ -37,7 +37,7 @@ subprojects {
 
     bintray {
         user = findProperty('bintrayUser') ?: System.getenv('BINTRAY_USER')
-        key = findProperty('bintrayApiKey') ?: System.getenv('BINTRAY_KEY')
+        key = findProperty('bintrayApiKey') ?: System.getenv('BINTRAY_API_KEY')
     }
 
     task sourcesJar(type: Jar) {
