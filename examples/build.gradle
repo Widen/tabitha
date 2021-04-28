@@ -1,5 +1,3 @@
-bintrayUpload.enabled = false
-
 dependencies {
     compile project(':tabitha-core')
     compile project(':tabitha-delimited')
