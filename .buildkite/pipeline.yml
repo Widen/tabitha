@@ -5,7 +5,7 @@ steps:
       queue: builder
     plugins:
       docker#v1.1.1:
-        image: gradle:4.10
+        image: gradle:6.8.3-jdk8
         always-pull: true
         user: root
 
@@ -13,14 +13,16 @@ steps:
 
   - label: ":maven: Publish Artifacts"
     branches: "*.*.*"
-    command: "./gradlew bintrayUpload"
+    command: "./gradlew publishToSonatype closeAndReleaseSonatypeStagingRepository"
     agents:
       queue: builder
     plugins:
       docker#v1.1.1:
-        image: gradle:4.10
+        image: gradle:6.8.3-jdk8
         always-pull: true
         user: root
         environment:
-          - BINTRAY_USER
-          - BINTRAY_API_KEY
+          - MAVEN_CENTRAL_SIGNING_KEY
+          - MAVEN_CENTRAL_SIGNING_PASSWORD
+          - ORG_GRADLE_PROJECT_sonatypeUsername
+          - ORG_GRADLE_PROJECT_sonatypePassword

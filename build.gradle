@@ -3,21 +3,15 @@ plugins {
     id 'io.github.gradle-nexus.publish-plugin' version '1.1.0'
 }
 
-group = 'com.widen.oss'
-
-nexusPublishing {
-    repositories {
-        sonatype()
-    }
+allprojects {
+    group = 'com.widen.oss'
+    ext.repo = 'https://github.com/Widen/tabitha'
 }
 
 subprojects {
     apply plugin: 'groovy'
     apply plugin: 'java'
     apply plugin: 'com.widen.versioning'
-
-    group = 'com.widen.oss'
-    ext.repo = 'https://github.com/Widen/tabitha'
 
     sourceCompatibility = 1.8
     targetCompatibility = 1.8
@@ -48,6 +42,12 @@ subprojects {
     task javadocJar(type: Jar) {
         from javadoc
         classifier 'javadoc'
+    }
+}
+
+nexusPublishing {
+    repositories {
+        sonatype()
     }
 }
 
@@ -87,8 +87,8 @@ configure([project(':tabitha-core'), project(':tabitha-delimited'), project(':ta
                     }
                     scm {
                         url = project.ext.repo + '.git'
-                        connection = 'scm:git@github.com:Widen/tabitha.git'
-                        developerConnection = 'scm:git@github.com:Widen/tabitha.git'
+                        connection = project.ext.repo.replace('https://github.com/', 'scm:git@github.com:') + '.git'
+                        developerConnection = connection
                     }
                 }
             }
@@ -97,8 +97,8 @@ configure([project(':tabitha-core'), project(':tabitha-delimited'), project(':ta
 
     signing {
         useInMemoryPgpKeys(
-            findProperty('mavenCentralSigningKey') ?: System.getenv('MAVEN_CENTRAL_SIGNING_KEY'),
-            findProperty('mavenCentralSigningPassword') ?: System.getenv('MAVEN_CENTRAL_SIGNING_PASSWORD')
+            System.getenv('MAVEN_CENTRAL_SIGNING_KEY') ?: findProperty('mavenCentralSigningKey'),
+            System.getenv('MAVEN_CENTRAL_SIGNING_PASSWORD') ?: findProperty('mavenCentralSigningPassword')
         )
         sign publishing.publications.maven
     }
