@@ -17,11 +17,3 @@ jobs:
 
       - name: Unit tests
         run: ./gradlew check --continue
-
-      - name: "Publish to Maven Central [test]"
-        run: ./gradlew publishToSonatype closeSonatypeStagingRepository
-        env:
-          ORG_GRADLE_PROJECT_signingKey: ${{ secrets.MAVEN_CENTRAL_SIGNING_KEY }}
-          ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.MAVEN_CENTRAL_SIGNING_PASSWORD }}
-          ORG_GRADLE_PROJECT_sonatypeUsername: ${{ secrets.SONATYPE_USERNAME }}
-          ORG_GRADLE_PROJECT_sonatypePassword: ${{ secrets.SONATYPE_PASSWORD }}
