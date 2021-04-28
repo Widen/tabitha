@@ -1,24 +1,23 @@
 plugins {
-    id 'com.jfrog.bintray' version '1.8.4' apply false
     id 'com.widen.versioning' version '0.3.3'
+    id 'io.github.gradle-nexus.publish-plugin' version '1.1.0'
+}
+
+allprojects {
+    group = 'com.widen.oss'
+    ext.repo = 'https://github.com/Widen/tabitha'
 }
 
 subprojects {
     apply plugin: 'groovy'
     apply plugin: 'java'
-    apply plugin: 'maven-publish'
-    apply plugin: 'signing'
-    apply plugin: 'com.jfrog.bintray'
     apply plugin: 'com.widen.versioning'
-
-    group = 'com.widen'
-    ext.repo = 'https://github.com/Widen/tabitha'
 
     sourceCompatibility = 1.8
     targetCompatibility = 1.8
 
     repositories {
-        jcenter()
+        mavenCentral()
     }
 
     dependencies {
@@ -35,11 +34,6 @@ subprojects {
         testCompile 'org.spockframework:spock-core:1.1-groovy-2.4'
     }
 
-    bintray {
-        user = findProperty('bintrayUser') ?: System.getenv('BINTRAY_USER')
-        key = findProperty('bintrayApiKey') ?: System.getenv('BINTRAY_API_KEY')
-    }
-
     task sourcesJar(type: Jar) {
         from sourceSets.main.allSource
         classifier 'sources'
@@ -49,32 +43,17 @@ subprojects {
         from javadoc
         classifier 'javadoc'
     }
+}
 
-    bintray {
-        publications = ['maven']
-        publish = true
-        pkg {
-            repo = 'oss'
-            name = project.name
-            userOrg = 'widen'
-            desc = project.description
-            websiteUrl = project.ext.repo
-            issueTrackerUrl = project.ext.repo + '/issues'
-            vcsUrl = project.ext.repo + '.git'
-            licenses = ['MIT']
-            publicDownloadNumbers = true
-            version {
-                name = project.version
-                gpg {
-                    sign = true
-                }
-            }
-        }
+nexusPublishing {
+    repositories {
+        sonatype()
     }
+}
 
-    bintrayUpload.doFirst {
-        bintrayUpload.versionName = project.version
-    }
+configure([project(':tabitha-core'), project(':tabitha-delimited'), project(':tabitha-excel'), project(':tabitha-json')]) {
+    apply plugin: 'maven-publish'
+    apply plugin: 'signing'
 
     publishing {
         publications {
@@ -84,7 +63,9 @@ subprojects {
                 artifact javadocJar
                 pom {
                     name = project.name
-                    description = project.description
+                    description = provider {
+                        project.description
+                    }
                     url = project.ext.repo
                     licenses {
                         license {
@@ -92,6 +73,10 @@ subprojects {
                             url = 'https://opensource.org/licenses/MIT'
                             distribution = 'repo'
                         }
+                    }
+                    organization {
+                        name = 'Widen Enterprises, Inc'
+                        url = 'https://www.widen.com'
                     }
                     developers {
                         developer {
@@ -102,11 +87,16 @@ subprojects {
                     }
                     scm {
                         url = project.ext.repo + '.git'
-                        connection = 'scm:git@github.com:Widen/tabitha.git'
-                        developerConnection = 'scm:git@github.com:Widen/tabitha.git'
+                        connection = project.ext.repo.replace('https://github.com/', 'scm:git@github.com:') + '.git'
+                        developerConnection = connection
                     }
                 }
             }
         }
+    }
+
+    signing {
+        useInMemoryPgpKeys(findProperty('signingKey'), findProperty('signingPassword'))
+        sign publishing.publications.maven
     }
 }

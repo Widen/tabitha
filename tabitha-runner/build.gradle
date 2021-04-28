@@ -3,8 +3,6 @@ plugins {
     id 'com.github.johnrengelman.shadow' version '2.0.0'
 }
 
-bintrayUpload.enabled = false
-
 mainClassName = 'com.widen.tabitha.runner.Runner'
 
 dependencies {
