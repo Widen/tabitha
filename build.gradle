@@ -96,10 +96,7 @@ configure([project(':tabitha-core'), project(':tabitha-delimited'), project(':ta
     }
 
     signing {
-        useInMemoryPgpKeys(
-            System.getenv('MAVEN_CENTRAL_SIGNING_KEY') ?: findProperty('mavenCentralSigningKey'),
-            System.getenv('MAVEN_CENTRAL_SIGNING_PASSWORD') ?: findProperty('mavenCentralSigningPassword')
-        )
+        useInMemoryPgpKeys(findProperty('signingKey'), findProperty('signingPassword'))
         sign publishing.publications.maven
     }
 }
