@@ -1,6 +1,6 @@
 # Tabitha
 
-[![Build Status](https://badge.buildkite.com/bd90a813b49a2777b80079355157fbaadf74ea44aa5c7ddd86.svg)](https://buildkite.com/widen/tabitha)
+[![Build Status](https://github.com/Widen/tabitha/actions/workflows/ci.yml/badge.svg)](https://github.com/Widen/tabitha/actions/workflows/ci.yml)
 ![Maven Central](https://img.shields.io/maven-central/v/com.widen.oss/tabitha-core)
 
 Tabular data reading, writing, and processing library for JVM languages.
