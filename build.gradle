@@ -4,8 +4,16 @@ plugins {
 }
 
 allprojects {
+    apply plugin: 'idea'
+
     group = 'com.widen.oss'
     ext.repo = 'https://github.com/Widen/tabitha'
+
+    idea.module.iml {
+        beforeMerged { module ->
+            module.dependencies.clear()
+        }
+    }
 }
 
 subprojects {

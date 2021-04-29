@@ -28,7 +28,7 @@ public class DelimitedRowWriter implements RowWriter {
     public void write(List<Variant> cells) {
         String[] cols = cells
             .stream()
-            .map(Object::toString)
+            .map(Variant::toString)
             .map(String.class::cast)
             .toArray(String[]::new);
 

@@ -130,6 +130,17 @@ public abstract class Variant {
         return Optional.empty();
     }
 
+    /**
+     * Return a string representation of this variant value.
+     *
+     * All variant types can be converted to their appropriate string representation using this method. The string
+     * equivalent will maintain as much precision as possible and is suitable for writing a variant value to a text-only
+     * format, such as a CSV.
+     *
+     * @return String equivalent of this value.
+     */
+    public abstract java.lang.String toString();
+
     // Private to prevent extending with unbounded variant types.
     private Variant() {
     }
