@@ -24,11 +24,13 @@ With Gradle:
 
 ```
 // Tabitha API
-compile 'com.widen:tabitha-core:0.4.0'
+compile 'com.widen:tabitha-core:{version}'
 // Support for CSV, TSV, etc
-compile 'com.widen:tabitha-delimited:0.4.0'
+compile 'com.widen:tabitha-delimited:{version}'
 // Support for XLSX and XLS
-compile 'com.widen:tabitha-excel:0.4.0'
+compile 'com.widen:tabitha-excel:{version}'
+// Support for reading line-separated JSON objects
+compile 'com.widen:tabitha-json:{version}'
 ```
 
 Other dependency managers should be similar.
