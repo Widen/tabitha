@@ -279,7 +279,7 @@ public class XLSXRowReader implements RowReader {
                     switch (cellType) {
                         // Boolean type.
                         case "b":
-                            cellValue = Variant.of(valueBuilder.charAt(0) == '0');
+                            cellValue = Variant.of(valueBuilder.charAt(0) == '1');
                             break;
 
                         // Shared string table string; the value is the index into the actual string value in the table.
