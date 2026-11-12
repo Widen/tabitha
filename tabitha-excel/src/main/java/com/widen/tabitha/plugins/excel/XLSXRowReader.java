@@ -307,7 +307,7 @@ public class XLSXRowReader implements RowReader {
                                 cellValue = Variant.of(Double.parseDouble(valueString));
                             }
                             else {
-                                cellValue = Variant.of(Long.parseLong(valueString));
+                                cellValue = Variant.of(Double.valueOf(valueString).longValue());
                             }
                             break;
                     }
